@@ -16,9 +16,9 @@
   </div>
   <label>Son âge<input name="age" value="<%= animal.age || '' %>" placeholder="ex : 3 ans, 6 mois" maxlength="40"></label>
 
-  <label class="check check-duo"><input type="checkbox" name="is_pair" value="1" data-pair-toggle <%= animal.is_pair ? 'checked' : '' %>> <span><strong>💞 Ce sont deux animaux inséparables</strong><br><small>Une seule annonce pour les deux : ils ne seront proposés qu'en adoption commune.</small></span></label>
+  <label class="check check-duo"><input type="checkbox" name="is_pair" value="1" <%= animal.is_pair ? 'checked' : '' %>> <span><strong>💞 Ce sont deux animaux inséparables</strong><br><small>Une seule annonce pour les deux : ils ne seront proposés qu'en adoption commune.</small></span></label>
 
-  <div class="duo-block" data-pair-block hidden>
+  <div class="duo-block">
     <div class="step"><b>+</b> Le second animal</div>
     <label>Son nom<input name="name2" value="<%= animal.name2 || '' %>" maxlength="60" placeholder="ex : Filou"></label>
     <div class="two">

@@ -364,5 +364,11 @@ figure.detail-photo.is-distress > img, figure.detail-photo.is-distress > .ph { b
 figure.detail-photo figcaption { text-align: center; font-weight: 800; margin-top: 12px; font-size: .95rem; }
 .duo-note { background: var(--butter); padding: 14px 22px; border-radius: 22px; }
 .check-duo { background: var(--peach); padding: 18px; border-radius: 22px; }
+/* Le second animal s'affiche à la coche, sans JavaScript. Si le navigateur ne
+   sait pas faire, le bloc reste simplement visible en permanence. */
 .duo-block { background: var(--red-soft); border-radius: 26px; padding: 2px 22px 8px; margin-bottom: 22px; }
+@supports selector(:has(*)) {
+  .duo-block { display: none; }
+  .check-duo:has(input:checked) + .duo-block { display: block; }
+}
 .duo-block .step b { background: var(--red-dark); }

@@ -14,6 +14,17 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.disable('x-powered-by');
 
+// Numéro de version des fichiers css/js : force le navigateur à recharger
+// ses fichiers dès qu'ils changent, au lieu de garder une version périmée.
+const assetVersion = (() => {
+  try {
+    const stamps = ['public/css/style.css', 'public/js/site.js'].map((p) => fs.statSync(path.join(__dirname, p)).mtimeMs);
+    return crypto.createHash('sha1').update(stamps.join('|')).digest('hex').slice(0, 8);
+  } catch {
+    return String(Date.now());
+  }
+})();
+
 // ---------- secret de session persistant ----------
 const secretFile = path.join(DATA_DIR, '.secret');
 if (!fs.existsSync(secretFile)) fs.writeFileSync(secretFile, crypto.randomBytes(32).toString('hex'), { mode: 0o600 });
@@ -96,6 +107,7 @@ app.use((req, res, next) => {
     if (a) res.locals.admin = req.admin = a;
     else req.session = null;
   }
+  res.locals.assetVersion = assetVersion;
   res.locals.petName = petName;
   res.locals.animalMeta = animalMeta;
   res.locals.sexLabel = sexLabel;
