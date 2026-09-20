@@ -46,7 +46,7 @@ app.use(
   cookieSession({
     name: 'asad_session',
     keys: [SECRET],
-    maxAge: 7 * 24 * 3600 * 1000,
+    maxAge: 365 * 24 * 3600 * 1000, // la connexion reste valable un an, prolongée à chaque visite
     httpOnly: true,
     sameSite: 'lax',
     secure: PROD,
@@ -104,8 +104,15 @@ app.use((req, res, next) => {
   res.locals.admin = null;
   if (req.session.adminId) {
     const a = db.prepare('SELECT id, name, email, role FROM admins WHERE id = ?').get(req.session.adminId);
-    if (a) res.locals.admin = req.admin = a;
-    else req.session = null;
+    if (a) {
+      res.locals.admin = req.admin = a;
+      // Connexion glissante : tant que la personne revient, elle n'a pas à ressaisir son mot de passe.
+      // On ne rafraîchit qu'une fois par jour, pour ne pas renvoyer le cookie à chaque page.
+      const now = Date.now();
+      if (!req.session.vu || now - req.session.vu > 24 * 3600 * 1000) req.session.vu = now;
+    } else {
+      req.session = null;
+    }
   }
   res.locals.assetVersion = assetVersion;
   res.locals.petName = petName;
