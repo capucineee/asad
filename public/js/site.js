@@ -99,3 +99,17 @@ document.querySelectorAll('form[data-guard]').forEach((f) => {
     }
   });
 });
+
+// Copier le lien d'une page pour le coller dans un message ou sur Facebook
+document.querySelectorAll('[data-copy]').forEach((b) =>
+  b.addEventListener('click', async () => {
+    const original = b.textContent;
+    try {
+      await navigator.clipboard.writeText(b.dataset.copy);
+      b.textContent = '✓ Lien copié !';
+      setTimeout(() => (b.textContent = original), 2500);
+    } catch {
+      window.prompt('Copiez ce lien :', b.dataset.copy);
+    }
+  })
+);

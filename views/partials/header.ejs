@@ -4,7 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title ? title + ' · ASAD' : 'ASAD · Association des Animaux en Détresse' %></title>
-  <meta name="description" content="ASAD, l'Association des Animaux en Détresse : adoption de chiens et de chats, conseils et soutien.">
+<% const _og = og || {};
+   const _desc = _og.description || "ASAD, l'Association des Animaux en Détresse : adoption de chiens et de chats, conseils et soutien.";
+   const _img = _og.image ? absUrl('/uploads/' + _og.image) : absUrl('/icons/icon-512.png'); %>
+  <meta name="description" content="<%= _desc %>">
+  <%# vignette affichée quand le lien est partagé sur Facebook, WhatsApp, etc. %>
+  <meta property="og:site_name" content="ASAD – Association des Animaux en Détresse">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:type" content="<%= _og.type || 'website' %>">
+  <meta property="og:url" content="<%= absUrl(path) %>">
+  <meta property="og:title" content="<%= _og.title || (title ? title + ' · ASAD' : 'ASAD · Association des Animaux en Détresse') %>">
+  <meta property="og:description" content="<%= _desc %>">
+  <meta property="og:image" content="<%= _img %>">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">

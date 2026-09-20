@@ -6,6 +6,7 @@
   <p class="date"><%= fdate(post.created_at) %></p>
   <% if (post.cover) { %><img class="cover" src="/uploads/<%= post.cover %>" alt=""><% } %>
   <div class="prose"><%- formatContent(post.content) %></div>
+  <%- include('partials/share', { shareWhat: 'cet article', shareText: post.title + " \u2014 ASAD" }) %>
   <div class="cta-inline">
     <p><strong>Un animal a besoin d'aide ?</strong> Contactez-nous, nous ferons de notre mieux pour vous guider.</p>
     <a class="btn" href="/association#aider">Nous contacter</a>

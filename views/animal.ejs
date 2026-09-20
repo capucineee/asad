@@ -40,6 +40,7 @@
       <% } %>
       <div class="prose"><%- formatContent(animal.description) %></div>
       <% if (story) { %><div class="actions"><a class="btn" href="/histoires/<%= story.id %>">Lire son histoire 💛</a></div><% } %>
+      <%- include('partials/share', { shareWhat: 'cette annonce', shareText: petName(animal) + (duo ? " cherchent" : " cherche") + " une famille — ASAD" }) %>
       <% if (animal.status !== 'adopte') { %>
         <div class="actions">
           <% if (settings.email) { %><a class="btn" href="mailto:<%= settings.email %>?subject=<%= encodeURIComponent('Adoption de ' + petName(animal)) %>">Je m'intéresse à <%= petName(animal) %></a><% } %>

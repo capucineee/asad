@@ -372,3 +372,13 @@ figure.detail-photo figcaption { text-align: center; font-weight: 800; margin-to
   .check-duo:has(input:checked) + .duo-block { display: block; }
 }
 .duo-block .step b { background: var(--red-dark); }
+
+/* ---------- partage sur les réseaux sociaux ---------- */
+.share { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 32px 0 0; padding-top: 22px; border-top: 2px dotted var(--red-line); }
+.share-label { font-weight: 800; color: var(--muted); }
+.share-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border: 0; border-radius: 999px; background: var(--peach); color: var(--ink); font: 800 .92rem var(--font); cursor: pointer; transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), background .2s, color .2s; }
+.share-btn svg { width: 20px; height: 20px; }
+.share-btn:hover { transform: translateY(-2px); color: #fff; }
+.share-btn.fb:hover { background: #1877f2; }
+.share-btn.wa:hover { background: #25d366; }
+.share-btn.copy:hover { background: var(--red); }

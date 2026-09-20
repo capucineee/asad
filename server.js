@@ -77,6 +77,14 @@ function formatContent(text) {
     .join('\n');
 }
 
+// ---------- partage sur les réseaux sociaux ----------
+// Facebook a besoin d'adresses complètes (https://…) pour afficher une vignette
+const absUrl = (req, p) => `${req.protocol}://${req.get('host')}${p}`;
+const plain = (t, n = 200) => {
+  const clean = String(t || '').replace(/\s+/g, ' ').trim();
+  return clean.length > n ? clean.slice(0, n - 1).trim() + '…' : clean;
+};
+
 // ---------- affichage des animaux (un seul, ou un duo inséparable) ----------
 const sexLabel = (species, sex) =>
   species === 'chat' ? (sex === 'femelle' ? 'Chatte' : 'Chat') : sex === 'femelle' ? 'Chienne' : 'Chien';
@@ -115,6 +123,8 @@ app.use((req, res, next) => {
     }
   }
   res.locals.assetVersion = assetVersion;
+  res.locals.absUrl = (p) => absUrl(req, p);
+  res.locals.og = null;
   res.locals.petName = petName;
   res.locals.animalMeta = animalMeta;
   res.locals.sexLabel = sexLabel;
@@ -271,7 +281,17 @@ app.get('/animaux/:id', (req, res, next) => {
   const animal = db.prepare('SELECT * FROM animals WHERE id = ?').get(Number(req.params.id));
   if (!animal) return next();
   const story = db.prepare('SELECT id, title FROM stories WHERE animal_id = ? AND published = 1 ORDER BY created_at DESC').get(animal.id);
-  res.render('animal', { title: petName(animal), animal, story });
+  res.render('animal', {
+    title: petName(animal),
+    animal,
+    story,
+    og: {
+      type: 'article',
+      title: `${petName(animal)} ${isPair(animal) ? 'cherchent' : 'cherche'} une famille`,
+      description: plain(animal.description) || `${petName(animal)} ${isPair(animal) ? 'attendent' : 'attend'} une famille. Découvrez ${isPair(animal) ? 'leur' : 'sa'} fiche sur le site de l'ASAD.`,
+      image: animal.photo,
+    },
+  });
 });
 
 app.get('/blog', (req, res) => {
@@ -282,7 +302,12 @@ app.get('/blog/:slug', (req, res, next) => {
   const post = db.prepare('SELECT * FROM posts WHERE slug = ? AND published = 1').get(req.params.slug);
   if (!post) return next();
   const more = db.prepare('SELECT * FROM posts WHERE published = 1 AND id != ? ORDER BY created_at DESC LIMIT 2').all(post.id);
-  res.render('post', { title: post.title, post, more });
+  res.render('post', {
+    title: post.title,
+    post,
+    more,
+    og: { type: 'article', title: post.title, description: plain(post.excerpt || post.content), image: post.cover },
+  });
 });
 
 app.get('/histoires', (req, res) => {
@@ -320,7 +345,12 @@ app.get('/histoires/:id', (req, res, next) => {
   const story = db.prepare('SELECT * FROM stories WHERE id = ? AND published = 1').get(Number(req.params.id));
   if (!story) return next();
   const more = db.prepare('SELECT * FROM stories WHERE published = 1 AND id != ? ORDER BY created_at DESC LIMIT 2').all(story.id);
-  res.render('story', { title: `${story.pet_name} : ${story.title}`, story, more });
+  res.render('story', {
+    title: `${story.pet_name} : ${story.title}`,
+    story,
+    more,
+    og: { type: 'article', title: `${story.pet_name} — ${story.title}`, description: plain(story.content), image: story.photo },
+  });
 });
 
 app.get('/livre-d-or', (req, res) => {

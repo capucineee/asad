@@ -27,6 +27,7 @@
         <button class="btn btn-sm <%= a.distress ? 'btn-ghost' : 'btn-outline-red' %>"><%= a.distress ? 'Retirer « En détresse »' : '🚨 Signaler en détresse' %></button></form>
       <form method="post" action="/admin/animaux/<%= a.id %>/adopte" data-confirm="<%= petName(a) %> a trouvé une famille ? Il sera marqué comme adopté."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">🎉 Il est adopté</button></form>
       <% } %>
+      <a class="btn btn-sm btn-ghost" href="/animaux/<%= a.id %>" target="_blank">👁 Voir / partager</a>
       <a class="btn btn-sm btn-ghost" href="/admin/animaux/<%= a.id %>">✏️ Modifier</a>
       <form method="post" action="/admin/animaux/<%= a.id %>/supprimer" data-confirm="Supprimer <%= petName(a) %> définitivement ? Cette action est irréversible."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form>
     </div>
