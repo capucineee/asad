@@ -609,6 +609,15 @@ app.post('/admin/comptes', requireSuper, (req, res) => {
   flash(req, 'ok', `Le compte de ${name} a été créé.`);
   res.redirect('/admin/comptes');
 });
+app.post('/admin/comptes/nom', (req, res) => {
+  const name = clean(req.body.name, 60);
+  if (!name) flash(req, 'error', 'Indiquez votre prénom ou votre nom.');
+  else {
+    db.prepare('UPDATE admins SET name = ? WHERE id = ?').run(name, req.admin.id);
+    flash(req, 'ok', `C’est noté : vous serez désormais accueilli(e) sous le nom « ${name} ».`);
+  }
+  res.redirect('/admin/comptes');
+});
 app.post('/admin/comptes/mot-de-passe', (req, res) => {
   const a = db.prepare('SELECT * FROM admins WHERE id = ?').get(req.admin.id);
   const pw = String(req.body.new_password || '');

@@ -29,6 +29,11 @@
     <button class="btn" type="submit">Créer le compte</button>
   </form>
   <% } %>
+  <form class="form-card" method="post" action="/admin/comptes/nom">
+    <h2>Mon nom</h2><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Prénom / nom affiché<input name="name" value="<%= admin.name %>" required maxlength="60"><span class="hint">C'est le nom qui s'affiche dans « Bonjour … » et dans la liste des comptes.</span></label>
+    <button class="btn" type="submit">Enregistrer mon nom</button>
+  </form>
   <form class="form-card" method="post" action="/admin/comptes/mot-de-passe">
     <h2>Changer mon mot de passe</h2><input type="hidden" name="_csrf" value="<%= csrf %>">
     <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>

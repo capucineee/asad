@@ -124,8 +124,11 @@ function ensureFirstAdmin() {
   if (n > 0) return;
   const email = (process.env.ADMIN_EMAIL || 'admin@asad.fr').toLowerCase();
   const password = process.env.ADMIN_PASSWORD || crypto.randomBytes(5).toString('hex');
+  // Nom affiché : ADMIN_NAME, sinon le début de l'adresse e-mail (modifiable ensuite dans Comptes)
+  const local = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
+  const name = process.env.ADMIN_NAME || (local ? local[0].toUpperCase() + local.slice(1) : 'Administrateur');
   db.prepare("INSERT INTO admins (name, email, password_hash, role) VALUES (?, ?, ?, 'super')").run(
-    'Administrateur',
+    name,
     email,
     hashPassword(password)
   );

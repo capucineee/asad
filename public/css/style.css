@@ -193,7 +193,7 @@ p { margin: 0 0 1em; }
 .form-card h2 { font-size: 1.3rem; margin-top: .4em; }
 label { display: block; font-weight: 800; margin-bottom: 18px; font-size: .95rem; }
 input:not([type=checkbox]):not([type=file]), textarea, select { display: block; width: 100%; margin-top: 6px; padding: 13px 18px; font: 600 1rem var(--font); color: var(--ink); background: #fffafa; border: 2px solid var(--red-soft); border-radius: 18px; transition: border-color .2s, box-shadow .2s, background .2s; }
-input[type=file] { display: block; margin-top: 8px; font: 600 .95rem var(--font); }
+input[type=file] { display: block; width: 100%; max-width: 100%; margin-top: 8px; font: 600 .95rem var(--font); }
 textarea { resize: vertical; }
 input:focus, textarea:focus, select:focus { outline: 0; background: #fff; border-color: var(--red); box-shadow: 0 0 0 5px var(--red-soft); }
 .hint { display: block; color: var(--muted); font-weight: 600; font-size: .85rem; margin-top: 6px; }
@@ -343,3 +343,11 @@ details { background: var(--peach); border-radius: 20px; padding: 14px 20px; mar
 summary { cursor: pointer; font-weight: 800; }
 details p { margin: 10px 0 0; }
 @media (max-width: 520px) { .todo-item { flex-wrap: wrap; } .guide { padding: 6px 20px 18px; } }
+
+/* L'espace bénévoles a beaucoup de liens : menu « burger » dès 1200 px */
+@media (max-width: 1200px) {
+  .admin-bar .burger { display: flex; }
+  .admin-bar .nav { display: none; position: absolute; top: 88px; left: 0; right: 0; flex-direction: column; flex-wrap: nowrap; align-items: stretch; justify-content: flex-start; background: #fff; padding: 12px 20px 22px; border-radius: 0 0 28px 28px; box-shadow: 0 24px 30px -20px rgba(120, 60, 70, .35); }
+  .admin-bar .nav.open { display: flex; }
+  .admin-bar .nav a, .admin-bar .linkbtn { padding: 13px 18px; text-align: left; }
+}
