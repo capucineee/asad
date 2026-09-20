@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title><%= title %> · Administration ASAD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="admin">
+<header class="admin-bar">
+  <div class="wrap bar">
+    <a class="brand" href="/admin"><span class="brand-mark"><%- include('paw') %></span><span class="brand-text"><strong>ASAD</strong><small>Espace bénévoles</small></span></a>
+    <nav class="nav admin-nav" data-nav>
+      <a href="/admin" class="<%= path === '/admin' ? 'on' : '' %>">Accueil</a>
+      <a href="/admin/animaux" class="<%= path.startsWith('/admin/animaux') ? 'on' : '' %>">Animaux</a>
+      <a href="/admin/histoires" class="<%= path.startsWith('/admin/histoires') ? 'on' : '' %>">Histoires</a>
+      <a href="/admin/articles" class="<%= path.startsWith('/admin/articles') ? 'on' : '' %>">Articles</a>
+      <a href="/admin/livre-d-or" class="<%= path.startsWith('/admin/livre') ? 'on' : '' %>">Livre d'or</a>
+      <a href="/admin/reglages" class="<%= path.startsWith('/admin/reglages') ? 'on' : '' %>">Réglages</a>
+      <a href="/admin/comptes" class="<%= path.startsWith('/admin/comptes') ? 'on' : '' %>">Comptes</a>
+      <a href="/admin/aide" class="<%= path.startsWith('/admin/aide') ? 'on' : '' %>">❓ Aide</a>
+      <a href="/" target="_blank">Voir le site ↗</a>
+      <form method="post" action="/admin/deconnexion"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linkbtn">Déconnexion</button></form>
+    </nav>
+    <button class="burger" aria-label="Menu" data-burger><span></span><span></span><span></span></button>
+  </div>
+</header>
+<main class="wrap admin-main">
+<% if (flash) { %><div class="notice notice-<%= flash.type %>" role="status"><%= flash.text %><% if (flash.link) { %> <a class="notice-link" href="<%= flash.link.href %>"><%= flash.link.label %> →</a><% } %></div><% } %>

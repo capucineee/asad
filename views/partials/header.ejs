@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title ? title + ' · ASAD' : 'ASAD · Association des Animaux en Détresse' %></title>
+  <meta name="description" content="ASAD, l'Association des Animaux en Détresse : adoption de chiens et de chats, conseils et soutien.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="/logo-mark.svg">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="/" aria-label="ASAD – Association des Animaux en Détresse, accueil"><img class="logo" src="/logo.svg" alt="ASAD – Association des Animaux en Détresse" width="440" height="200"></a>
+    <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false" data-burger><span></span><span></span><span></span></button>
+    <nav class="nav" data-nav>
+      <a href="/animaux" class="<%= path.startsWith('/animaux') ? 'on' : '' %>">Nos animaux</a>
+      <a href="/histoires" class="<%= path.startsWith('/histoires') ? 'on' : '' %>">Adoptés</a>
+      <a href="/blog" class="<%= path.startsWith('/blog') ? 'on' : '' %>">Blog</a>
+      <a href="/livre-d-or" class="<%= path.startsWith('/livre') ? 'on' : '' %>">Livre d'or</a>
+      <a href="/association" class="<%= path.startsWith('/association') ? 'on' : '' %>">L'association</a>
+      <a href="/association#aider" class="btn btn-sm">Nous aider</a>
+    </nav>
+  </div>
+</header>
+<% if (flash) { %><div class="wrap"><div class="notice notice-<%= flash.type %>" role="status"><%= flash.text %><% if (flash.link) { %> <a class="notice-link" href="<%= flash.link.href %>"><%= flash.link.label %> →</a><% } %></div></div><% } %>
+<main>

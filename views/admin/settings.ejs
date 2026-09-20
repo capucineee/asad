@@ -1,0 +1,20 @@
+<%- include('../partials/admin-header') %>
+<h1>Réglages du site</h1>
+<form class="form-card wide" method="post" action="/admin/reglages">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <h2>Page d'accueil</h2>
+  <label>Grand titre<input name="hero_title" value="<%= settings.hero_title %>" maxlength="120"></label>
+  <label>Texte d'introduction<textarea name="hero_text" rows="3" maxlength="400"><%= settings.hero_text %></textarea></label>
+  <h2>Coordonnées</h2>
+  <div class="two">
+    <label>E-mail de l'association<input type="email" name="email" value="<%= settings.email %>"></label>
+    <label>Téléphone<input name="phone" value="<%= settings.phone %>"></label>
+  </div>
+  <label>Adresse<input name="address" value="<%= settings.address %>"></label>
+  <h2>Liens</h2>
+  <label>Page Facebook<input name="facebook" value="<%= settings.facebook %>" placeholder="https://facebook.com/…"></label>
+  <label>Compte Instagram<input name="instagram" value="<%= settings.instagram %>" placeholder="https://instagram.com/…"></label>
+  <label>Lien pour faire un don<input name="donation_link" value="<%= settings.donation_link %>" placeholder="ex : lien HelloAsso"><span class="hint">Si rempli, un bouton « Faire un don » apparaît sur la page de l'association.</span></label>
+  <div class="actions"><button class="btn" type="submit">Enregistrer</button></div>
+</form>
+<%- include('../partials/admin-footer') %>

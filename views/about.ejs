@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+<section class="page-head"><div class="wrap">
+  <h1>L'association</h1>
+  <p class="lead">L'ASAD – Association des Animaux en Détresse – agit pour les chiens et les chats abandonnés, perdus ou maltraités.</p>
+</div></section>
+<section class="section-tight"><div class="wrap narrow prose">
+  <h2>Notre mission</h2>
+  <p>Nous recueillons des chiens et des chats en détresse, nous les faisons soigner, puis nous leur cherchons une famille qui les aimera pour de bon.</p>
+  <p>Nous nous occupons exclusivement des chiens et des chats. Notre équipe est composée de bénévoles qui donnent de leur temps, de leur énergie et souvent de leur maison.</p>
+  <h2 id="aider">Comment nous aider</h2>
+  <ul>
+    <li><strong>Adopter</strong> : parcourez <a href="/animaux">nos animaux</a> et contactez-nous.</li>
+    <li><strong>Devenir famille d'accueil</strong> : offrez un foyer temporaire à un animal, le temps qu'il trouve sa famille.</li>
+    <li><strong>Donner</strong> : les dons financent les soins vétérinaires, la nourriture et l'identification.</li>
+    <li><strong>Partager</strong> : diffusez nos annonces autour de vous, c'est déjà énorme.</li>
+  </ul>
+  <% if (settings.donation_link) { %><p><a class="btn" href="<%= settings.donation_link %>" target="_blank" rel="noopener">Faire un don</a></p><% } %>
+  <h2>Nous contacter</h2>
+  <div class="contact-cards">
+    <% if (settings.email) { %><a class="card-mini" href="mailto:<%= settings.email %>"><span>E-mail</span><strong><%= settings.email %></strong></a><% } %>
+    <% if (settings.phone) { %><a class="card-mini" href="tel:<%= settings.phone.replace(/\s/g,'') %>"><span>Téléphone</span><strong><%= settings.phone %></strong></a><% } %>
+    <% if (settings.address) { %><div class="card-mini"><span>Adresse</span><strong><%= settings.address %></strong></div><% } %>
+  </div>
+</div></section>
+<%- include('partials/footer') %>

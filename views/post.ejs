@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<article class="wrap narrow page-top">
+  <a class="back" href="/blog">← Le blog</a>
+  <span class="tag"><%= post.category %></span>
+  <h1><%= post.title %></h1>
+  <p class="date"><%= fdate(post.created_at) %></p>
+  <% if (post.cover) { %><img class="cover" src="/uploads/<%= post.cover %>" alt=""><% } %>
+  <div class="prose"><%- formatContent(post.content) %></div>
+  <div class="cta-inline">
+    <p><strong>Un animal a besoin d'aide ?</strong> Contactez-nous, nous ferons de notre mieux pour vous guider.</p>
+    <a class="btn" href="/association#aider">Nous contacter</a>
+  </div>
+</article>
+<% if (more.length) { %><section class="section tint"><div class="wrap"><h2>À lire aussi</h2><div class="grid grid-3"><% more.forEach(post => { %><%- include('partials/post-card', { post }) %><% }) %></div></div></section><% } %>
+<%- include('partials/footer') %>

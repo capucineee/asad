@@ -1,0 +1,11 @@
+<a class="card post" href="/blog/<%= post.slug %>">
+  <div class="thumb thumb-wide">
+    <% if (post.cover) { %><img src="/uploads/<%= post.cover %>" alt="" loading="lazy"><% } else { %><div class="ph"><%- include('paw') %></div><% } %>
+  </div>
+  <div class="card-body">
+    <span class="tag"><%= post.category %></span>
+    <h3><%= post.title %></h3>
+    <p class="excerpt"><%= post.excerpt %></p>
+    <p class="date"><%= fdate(post.created_at) %></p>
+  </div>
+</a>

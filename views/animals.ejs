@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<section class="page-head"><div class="wrap">
+  <h1>Nos animaux</h1>
+  <p class="lead">Chiens et chats en attente d'une famille. Cliquez sur une fiche pour tout savoir.</p>
+  <div class="filters">
+    <% [['tous','Tous'],['chien','Chiens'],['chat','Chats'],['detresse','En détresse']].forEach(([k,l]) => { %>
+      <a href="/animaux<%= k === 'tous' ? '' : '?filtre=' + k %>" class="chip <%= filter === k ? 'on' : '' %> <%= k === 'detresse' ? 'chip-red' : '' %>"><%= l %></a>
+    <% }) %>
+  </div>
+</div></section>
+<section class="section-tight"><div class="wrap">
+  <% if (animals.length) { %><div class="grid"><% animals.forEach(animal => { %><%- include('partials/animal-card', { animal }) %><% }) %></div>
+  <% } else { %><p class="empty">Aucun animal dans cette catégorie pour le moment.</p><% } %>
+</div></section>
+<%- include('partials/footer') %>

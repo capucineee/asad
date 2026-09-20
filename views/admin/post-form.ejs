@@ -1,0 +1,22 @@
+<%- include('../partials/admin-header') %>
+<a class="back" href="/admin/articles">← Retour aux articles</a>
+<h1><%= post.id ? 'Modifier l’article' : 'Écrire un article' %></h1>
+<p class="lead">Un article = un conseil, une nouvelle, un appel à l'aide. Écrivez simplement, comme dans un message.</p>
+<form class="form-card wide" method="post" enctype="multipart/form-data" data-guard action="/admin/articles<%= post.id ? '/' + post.id : '' %>">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <label>Titre de l'article<input name="title" value="<%= post.title || '' %>" maxlength="120" required placeholder="ex : Que faire si vous trouvez un chat errant ?"></label>
+  <label>Catégorie<input name="category" value="<%= post.category || '' %>" list="cats" maxlength="40"><datalist id="cats"><option>Bons réflexes</option><option>Adoption</option><option>Santé</option><option>Nouvelles de l'asso</option></datalist><span class="hint">Choisissez dans la liste ou écrivez la vôtre.</span></label>
+  <%- include('../partials/photo-field', { label: 'Image de l’article (facultatif)', name: 'cover', current: post.cover }) %>
+  <label>Le texte
+    <div class="toolbar" role="toolbar" aria-label="Mise en forme">
+      <button type="button" class="btn btn-sm btn-ghost" data-insert="title">𝗧 Ajouter un sous-titre</button>
+      <button type="button" class="btn btn-sm btn-ghost" data-insert="list">• Ajouter une liste</button>
+    </div>
+    <textarea name="content" id="content" rows="14" required><%= post.content || '' %></textarea>
+    <span class="hint">Pour séparer deux paragraphes, laissez une ligne vide. Les boutons ci-dessus ajoutent un sous-titre ou une liste à l'endroit où se trouve votre curseur.</span>
+  </label>
+  <label>Résumé court (facultatif)<input name="excerpt" value="<%= post.excerpt || '' %>" maxlength="300"><span class="hint">Une phrase qui donne envie de lire. Si vous laissez vide, il est créé automatiquement.</span></label>
+  <label class="check"><input type="checkbox" name="published" value="1" <%= post.published ? 'checked' : '' %>> <span><strong>Publier sur le blog</strong><br><small>Décochez pour le garder de côté, sans qu'il soit visible.</small></span></label>
+  <div class="actions sticky-actions"><button class="btn" type="submit" data-busy="Enregistrement…">✓ Enregistrer</button><a class="btn btn-ghost" href="/admin/articles">Annuler</a></div>
+</form>
+<%- include('../partials/admin-footer') %>

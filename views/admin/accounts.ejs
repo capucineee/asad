@@ -1,0 +1,25 @@
+<%- include('../partials/admin-header') %>
+<h1>Comptes bénévoles</h1>
+<p class="lead">Toutes les personnes ci-dessous peuvent gérer les annonces, les articles et le livre d'or.</p>
+<div class="rows">
+<% admins.forEach(a => { %>
+  <div class="row"><div class="row-main"><strong><%= a.name %></strong> <%= a.id === admin.id ? '(vous)' : '' %><span class="muted"><%= a.email %></span></div>
+    <div class="row-actions"><% if (a.id !== admin.id) { %><form method="post" action="/admin/comptes/<%= a.id %>/reinitialiser" data-confirm="Créer un nouveau mot de passe pour <%= a.name %> ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">Nouveau mot de passe</button></form><form method="post" action="/admin/comptes/<%= a.id %>/supprimer" data-confirm="Supprimer le compte de <%= a.name %> ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form><% } %></div></div>
+<% }) %>
+</div>
+<div class="two-col">
+  <form class="form-card" method="post" action="/admin/comptes">
+    <h2>Ajouter une personne</h2><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Prénom / nom<input name="name" required maxlength="60"></label>
+    <label>Adresse e-mail<input type="email" name="email" required></label>
+    <label>Mot de passe (8 caractères minimum)<input type="text" name="password" minlength="8" required autocomplete="off"></label>
+    <button class="btn" type="submit">Créer le compte</button>
+  </form>
+  <form class="form-card" method="post" action="/admin/comptes/mot-de-passe">
+    <h2>Changer mon mot de passe</h2><input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>
+    <label>Nouveau mot de passe<input type="password" name="new_password" minlength="8" required autocomplete="new-password"></label>
+    <button class="btn" type="submit">Changer</button>
+  </form>
+</div>
+<%- include('../partials/admin-footer') %>

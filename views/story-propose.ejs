@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+<section class="page-head"><div class="wrap narrow">
+  <a class="back" href="/histoires">← Les histoires</a>
+  <h1>Raconter mon histoire</h1>
+  <p class="lead">Vous avez adopté un chien ou un chat grâce à l'ASAD ? Racontez-nous comment ça se passe, nous serions ravis de le partager.</p>
+</div></section>
+<section class="section-tight"><div class="wrap narrow">
+  <form class="form-card" method="post" enctype="multipart/form-data" action="/histoires/proposer">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="hp" aria-hidden="true"><label>Site web <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="two">
+      <label>Nom de votre compagnon<input name="pet_name" maxlength="60" required></label>
+      <label>C'est un…<select name="species"><option value="chien">Chien</option><option value="chat">Chat</option></select></label>
+    </div>
+    <label>Votre prénom<input name="adopter" maxlength="80" required placeholder="ex : Sophie"></label>
+    <label>Titre (facultatif)<input name="title" maxlength="120" placeholder="ex : De la rue au canapé"></label>
+    <label>Votre histoire<textarea name="content" rows="8" maxlength="5000" required placeholder="Comment vous l'avez rencontré, ses premiers jours chez vous, comment il va aujourd'hui…"></textarea></label>
+    <label>Une photo (facultatif)<input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif"><span class="hint">Photos d'iPhone acceptées. 12 Mo maximum.</span></label>
+    <label class="check"><input type="checkbox" name="consent" value="1" required> <span>J'accepte que mon prénom, mon texte et ma photo soient publiés sur le site de l'ASAD.</span></label>
+    <button class="btn" type="submit">Envoyer mon histoire</button>
+    <p class="hint">Votre histoire sera publiée après relecture par l'équipe.</p>
+  </form>
+</div></section>
+<%- include('partials/footer') %>

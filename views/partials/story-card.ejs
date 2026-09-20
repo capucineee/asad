@@ -1,0 +1,11 @@
+<a class="card post story" href="/histoires/<%= story.id %>">
+  <div class="thumb thumb-wide">
+    <% if (story.photo) { %><img src="/uploads/<%= story.photo %>" alt="<%= story.pet_name %>" loading="lazy"><% } else { %><div class="ph"><%- include('paw') %></div><% } %>
+    <span class="badge badge-adopted">Adopté 🎉</span>
+  </div>
+  <div class="card-body">
+    <span class="tag"><%= story.pet_name %><%= story.adopter ? ' · chez ' + story.adopter : '' %></span>
+    <h3><%= story.title %></h3>
+    <p class="excerpt"><%= story.content.length > 130 ? story.content.slice(0, 130).trim() + '…' : story.content %></p>
+  </div>
+</a>

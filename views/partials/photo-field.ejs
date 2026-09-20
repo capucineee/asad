@@ -1,0 +1,13 @@
+<div class="photo-field" data-photo-field>
+  <span class="field-title"><%= label %></span>
+  <div class="photo-box">
+    <img class="photo-preview" data-preview src="<%= current ? '/uploads/' + current : '' %>" alt="" <%- current ? '' : 'hidden' %>>
+    <div class="photo-empty" data-empty <%- current ? 'hidden' : '' %>><span>📷</span><strong>Aucune photo</strong></div>
+  </div>
+  <label class="btn btn-ghost photo-btn">
+    <span data-btn-text><%= current ? 'Changer la photo' : 'Choisir une photo' %></span>
+    <input type="file" name="<%= name %>" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" hidden data-file>
+  </label>
+  <% if (current) { %><label class="check photo-remove"><input type="checkbox" name="remove_photo" value="1"> Retirer la photo</label><% } %>
+  <span class="hint">Depuis votre téléphone ou votre ordinateur. Photos d'iPhone acceptées (elles sont converties automatiquement). 12 Mo maximum. Une photo de bonne luminosité, prise de près, donne le meilleur effet.</span>
+</div>

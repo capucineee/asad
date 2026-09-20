@@ -1,0 +1,26 @@
+<%- include('../partials/admin-header') %>
+<a class="back" href="/admin/histoires">← Retour</a>
+<h1><%= story.id ? 'Modifier l’histoire' : 'Raconter une adoption' %></h1>
+<form class="form-card wide" method="post" enctype="multipart/form-data" data-guard action="/admin/histoires<%= story.id ? '/' + story.id : '' %>">
+  <input type="hidden" name="_csrf" value="<%= csrf %>">
+  <%- include('../partials/photo-field', { label: 'Photo (idéalement de l’animal dans sa nouvelle famille)', name: 'photo', current: story.photo }) %>
+  <div class="two">
+    <label>Nom de l'animal<input name="pet_name" value="<%= story.pet_name || '' %>" maxlength="60" required></label>
+    <label>C'est un…<select name="species"><option value="chien" <%= story.species === 'chien' ? 'selected' : '' %>>Chien</option><option value="chat" <%= story.species === 'chat' ? 'selected' : '' %>>Chat</option></select></label>
+  </div>
+  <label>Adopté par (prénom, facultatif)<input name="adopter" value="<%= story.adopter || '' %>" maxlength="80" placeholder="ex : Sophie et sa famille"><span class="hint">Demandez toujours l'accord des adoptants avant de publier leur prénom ou une photo.</span></label>
+  <label>Fiche de l'animal liée (facultatif)
+    <select name="animal_id"><option value="">— Aucune —</option>
+      <% animals.forEach(a => { %><option value="<%= a.id %>" <%= story.animal_id === a.id ? 'selected' : '' %>><%= a.name %> (<%= a.species === 'chat' ? 'chat' : 'chien' %><%= a.status === 'adopte' ? ', adopté' : '' %>)</option><% }) %>
+    </select>
+    <span class="hint">Un bouton « Lire son histoire » apparaîtra sur la fiche de cet animal.</span>
+  </label>
+  <label>Titre de l'histoire<input name="title" value="<%= story.title || '' %>" maxlength="120" placeholder="ex : De la rue au canapé" required></label>
+  <label>L'histoire
+    <textarea name="content" rows="10" required placeholder="Comment il est arrivé à l'association, sa rencontre avec sa famille, comment il va aujourd'hui…"><%= story.content || '' %></textarea>
+    <span class="hint">Laissez une ligne vide entre deux paragraphes.</span>
+  </label>
+  <label class="check"><input type="checkbox" name="published" value="1" <%= story.published ? 'checked' : '' %>> <span>Publier sur le site <small>(décochez pour garder en brouillon)</small></span></label>
+  <div class="actions sticky-actions"><button class="btn" type="submit" data-busy="Enregistrement…">✓ Enregistrer</button><a class="btn btn-ghost" href="/admin/histoires">Annuler</a></div>
+</form>
+<%- include('../partials/admin-footer') %>

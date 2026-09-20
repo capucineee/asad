@@ -1,0 +1,37 @@
+<%- include('../partials/admin-header') %>
+<div class="admin-head"><h1>Les animaux</h1><a class="btn" href="/admin/animaux/nouveau">+ Ajouter un animal</a></div>
+<% if (!animals.length) { %><p class="empty">Aucun animal pour le moment.<br>Cliquez sur <strong>« Ajouter un animal »</strong> pour commencer : il suffit d'une photo et d'un nom.</p><% } else { %>
+<div class="list-tools" data-list-tools>
+  <input type="search" placeholder="🔍 Chercher un nom…" aria-label="Chercher un animal" data-search>
+  <div class="filters">
+    <button type="button" class="chip on" data-filter="all">Tous (<%= animals.length %>)</button>
+    <button type="button" class="chip" data-filter="chien">Chiens</button>
+    <button type="button" class="chip" data-filter="chat">Chats</button>
+    <button type="button" class="chip chip-red" data-filter="distress">En détresse</button>
+    <button type="button" class="chip" data-filter="adopte">Adoptés</button>
+  </div>
+</div>
+<div class="rows">
+<% animals.forEach(a => { %>
+  <div class="row" data-item data-name="<%= a.name.toLowerCase() %>" data-tags="<%= [a.species, a.distress ? 'distress' : '', a.status === 'adopte' ? 'adopte' : ''].join(' ') %>">
+    <div class="row-thumb"><% if (a.photo) { %><img src="/uploads/<%= a.photo %>" alt=""><% } else { %><div class="ph"><%- include('../partials/paw') %></div><% } %></div>
+    <div class="row-main">
+      <strong><%= a.species === 'chat' ? '🐱' : '🐶' %> <%= a.name %></strong>
+      <span class="muted"><%= { disponible: 'Cherche une famille', reserve: 'Réservé', adopte: 'Adopté 🎉' }[a.status] %></span>
+      <% if (a.distress) { %><span class="badge badge-distress inline"><i></i>En détresse</span><% } %>
+    </div>
+    <div class="row-actions">
+      <% if (a.status !== 'adopte') { %>
+      <form method="post" action="/admin/animaux/<%= a.id %>/detresse"><input type="hidden" name="_csrf" value="<%= csrf %>">
+        <button class="btn btn-sm <%= a.distress ? 'btn-ghost' : 'btn-outline-red' %>"><%= a.distress ? 'Retirer « En détresse »' : '🚨 Signaler en détresse' %></button></form>
+      <form method="post" action="/admin/animaux/<%= a.id %>/adopte" data-confirm="<%= a.name %> a trouvé une famille ? Il sera marqué comme adopté."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">🎉 Il est adopté</button></form>
+      <% } %>
+      <a class="btn btn-sm btn-ghost" href="/admin/animaux/<%= a.id %>">✏️ Modifier</a>
+      <form method="post" action="/admin/animaux/<%= a.id %>/supprimer" data-confirm="Supprimer <%= a.name %> définitivement ? Cette action est irréversible."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form>
+    </div>
+  </div>
+<% }) %>
+  <p class="empty" data-none hidden>Aucun animal ne correspond.</p>
+</div>
+<% } %>
+<%- include('../partials/admin-footer') %>

@@ -1,0 +1,75 @@
+<%- include('../partials/admin-header') %>
+<h1>Guide pas à pas</h1>
+<p class="lead">Pas de panique : voici comment faire les choses les plus courantes. Vous ne pouvez rien « casser » : tout peut être modifié ou supprimé ensuite.</p>
+
+<nav class="toc" aria-label="Sommaire">
+  <a href="#animal">Ajouter un animal</a><a href="#detresse">Signaler un animal en détresse</a><a href="#adopte">Un animal est adopté</a><a href="#article">Écrire un article</a><a href="#livre">Livre d'or</a><a href="#compte">Comptes et mot de passe</a><a href="#faq">Questions fréquentes</a>
+</nav>
+
+<section class="guide" id="animal">
+  <h2>🐾 Ajouter un animal</h2>
+  <ol>
+    <li>Sur l'accueil, cliquez sur <span class="fake-btn">Ajouter un animal</span>.</li>
+    <li>Cliquez sur <span class="fake-btn ghost">Choisir une photo</span> et sélectionnez une photo (depuis votre téléphone, vous pouvez la prendre directement).</li>
+    <li>Écrivez son <strong>nom</strong>, choisissez chien ou chat, indiquez son âge et une petite description.</li>
+    <li>Cliquez sur <span class="fake-btn">✓ Enregistrer</span>. C'est en ligne tout de suite !</li>
+  </ol>
+</section>
+
+<section class="guide" id="detresse">
+  <h2>🚨 Signaler un animal en détresse</h2>
+  <p>Le badge rouge « En détresse » met l'animal en avant sur tout le site pour attirer l'attention.</p>
+  <ol>
+    <li>Ouvrez <strong>Animaux</strong> dans le menu.</li>
+    <li>Sur la ligne de l'animal, cliquez sur <span class="fake-btn red">🚨 Signaler en détresse</span>.</li>
+    <li>Pour retirer le badge quand la situation s'améliore, cliquez sur <span class="fake-btn ghost">Retirer « En détresse »</span>.</li>
+  </ol>
+</section>
+
+<section class="guide" id="adopte">
+  <h2>🎉 Un animal a trouvé une famille</h2>
+  <ol>
+    <li>Ouvrez <strong>Animaux</strong> et cliquez sur <span class="fake-btn ghost">🎉 Il est adopté</span> sur sa ligne.</li>
+    <li>Le site propose ensuite d'<strong>écrire son histoire</strong> : c'est facultatif, mais les visiteurs adorent ça.</li>
+    <li>L'animal reste visible, avec la mention « Adopté », dans la rubrique « Adoptés ».</li>
+  </ol>
+</section>
+
+<section class="guide" id="article">
+  <h2>✍️ Écrire un article pour le blog</h2>
+  <ol>
+    <li>Cliquez sur <strong>Articles</strong> puis <span class="fake-btn">+ Écrire un article</span>.</li>
+    <li>Donnez un titre, choisissez une catégorie et écrivez votre texte. Pour séparer deux paragraphes, laissez une ligne vide.</li>
+    <li>Les boutons <span class="fake-btn ghost">Ajouter un sous-titre</span> et <span class="fake-btn ghost">Ajouter une liste</span> aident à mettre en forme.</li>
+    <li>Cochez <em>Publier sur le blog</em> pour le rendre visible, ou décochez pour le garder de côté.</li>
+  </ol>
+</section>
+
+<section class="guide" id="livre">
+  <h2>💌 Livre d'or et histoires envoyées par les visiteurs</h2>
+  <p>Les messages et les histoires que les visiteurs envoient <strong>ne sont pas publiés tout de suite</strong> : vous les relisez d'abord.</p>
+  <ol>
+    <li>Sur l'accueil, la rubrique <em>À faire aujourd'hui</em> vous prévient quand il y a du nouveau.</li>
+    <li>Cliquez dessus, lisez, puis <span class="fake-btn">Publier</span> ou <span class="fake-btn ghost">Supprimer</span>.</li>
+  </ol>
+</section>
+
+<section class="guide" id="compte">
+  <h2>👥 Comptes et mot de passe</h2>
+  <ul>
+    <li><strong>Ajouter un bénévole</strong> : menu <em>Comptes</em>, formulaire « Ajouter une personne ».</li>
+    <li><strong>Changer votre mot de passe</strong> : menu <em>Comptes</em>, « Changer mon mot de passe ».</li>
+    <li><strong>Un bénévole a oublié son mot de passe</strong> : dans <em>Comptes</em>, cliquez sur « Nouveau mot de passe » à côté de son nom et transmettez-lui celui qui s'affiche.</li>
+  </ul>
+</section>
+
+<section class="guide" id="faq">
+  <h2>🤔 Questions fréquentes</h2>
+  <details><summary>Ma photo ne s'envoie pas</summary><p>Les photos d'iPhone, JPG, PNG et WebP sont acceptées (12 Mo maximum). Les photos d'iPhone sont converties automatiquement. Si le problème persiste, essayez de la reprendre en photo ou de la choisir depuis la galerie.</p></details>
+  <details><summary>J'ai fait une erreur dans une fiche</summary><p>Aucun souci : ouvrez <em>Animaux</em>, cliquez sur <em>Modifier</em>, corrigez, puis <em>Enregistrer</em>.</p></details>
+  <details><summary>Je ne vois pas mon changement sur le site</summary><p>Ouvrez « Voir le site » dans le menu et rechargez la page. Si la ligne a un badge <em>Brouillon</em>, l'article n'est pas publié : modifiez-le et cochez « Publier ».</p></details>
+  <details><summary>Comment supprimer un animal ?</summary><p>Dans <em>Animaux</em>, cliquez sur <em>Supprimer</em>. Le site demande confirmation, car c'est définitif. Si l'animal est simplement adopté, préférez « Il est adopté » : il reste visible avec sa mention.</p></details>
+  <details><summary>Où changer le numéro de téléphone ou l'e-mail du site ?</summary><p>Dans le menu <em>Réglages</em> : e-mail, téléphone, adresse, réseaux sociaux et lien pour les dons.</p></details>
+  <details><summary>Je me suis déconnecté sans faire exprès</summary><p>Reconnectez-vous avec votre e-mail et votre mot de passe. Vous restez connecté 7 jours sur le même appareil.</p></details>
+</section>
+<%- include('../partials/admin-footer') %>

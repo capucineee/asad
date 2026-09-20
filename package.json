@@ -1,0 +1,20 @@
+{
+  "name": "asad-site",
+  "version": "1.0.0",
+  "description": "Site de l'ASAD – Association des Animaux en Détresse",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "dependencies": {
+    "cookie-session": "^2.1.1",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "heic-convert": "^2.1.0",
+    "multer": "^2.4.0"
+  }
+}

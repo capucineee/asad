@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+<section class="page-head"><div class="wrap">
+  <h1>Livre d'or</h1>
+  <p class="lead">Un mot pour l'association, une belle histoire d'adoption, un encouragement… Nous lisons tout avec le sourire.</p>
+</div></section>
+<section class="section-tight"><div class="wrap gb">
+  <form class="form-card" method="post" action="/livre-d-or" id="ecrire">
+    <h2>Laisser un message</h2>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <div class="hp" aria-hidden="true"><label>Site web <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+    <label>Votre prénom<input name="author" maxlength="60" required></label>
+    <label>Votre message<textarea name="message" rows="5" maxlength="1000" required></textarea></label>
+    <button class="btn" type="submit">Envoyer mon message</button>
+    <p class="hint">Votre message sera publié après relecture par l'équipe.</p>
+  </form>
+  <div class="gb-list">
+    <% if (messages.length) { messages.forEach(m => { %>
+      <blockquote class="quote"><p><%= m.message %></p><footer>— <%= m.author %> · <%= fdate(m.created_at) %></footer></blockquote>
+    <% }) } else { %><p class="empty">Le livre d'or attend son premier message. 💌</p><% } %>
+  </div>
+</div></section>
+<%- include('partials/footer') %>

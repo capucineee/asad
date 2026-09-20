@@ -1,0 +1,18 @@
+<%- include('../partials/admin-header') %>
+<div class="admin-head"><h1>Les articles</h1><a class="btn" href="/admin/articles/nouveau">+ Écrire un article</a></div>
+<% if (!posts.length) { %><p class="empty">Aucun article. Un premier conseil sur les bons réflexes ?</p><% } %>
+<div class="rows">
+<% posts.forEach(p => { %>
+  <div class="row">
+    <div class="row-thumb"><% if (p.cover) { %><img src="/uploads/<%= p.cover %>" alt=""><% } else { %><div class="ph"><%- include('../partials/paw') %></div><% } %></div>
+    <div class="row-main"><strong><%= p.title %></strong><span class="muted"><%= p.category %> · <%= fdate(p.created_at) %></span>
+      <% if (!p.published) { %><span class="badge badge-soft inline">Brouillon</span><% } %></div>
+    <div class="row-actions">
+      <% if (p.published) { %><a class="btn btn-sm btn-ghost" href="/blog/<%= p.slug %>" target="_blank">Voir</a><% } %>
+      <a class="btn btn-sm btn-ghost" href="/admin/articles/<%= p.id %>">Modifier</a>
+      <form method="post" action="/admin/articles/<%= p.id %>/supprimer" data-confirm="Supprimer cet article définitivement ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form>
+    </div>
+  </div>
+<% }) %>
+</div>
+<%- include('../partials/admin-footer') %>

@@ -1,0 +1,28 @@
+<%- include('../partials/admin-header') %>
+<h1>Bonjour <%= admin.name %> 👋</h1>
+<p class="lead">Bienvenue dans votre espace. Tout se fait en quelques clics, et rien n'est définitif tant que vous n'avez pas cliqué sur « Enregistrer ».</p>
+
+<% const todo = []; if (stats.pending) todo.push({ icon: '💌', text: stats.pending + ' message' + (stats.pending > 1 ? 's' : '') + ' du livre d\'or à lire et publier', href: '/admin/livre-d-or' });
+   if (stats.pendingStories) todo.push({ icon: '📖', text: stats.pendingStories + ' histoire' + (stats.pendingStories > 1 ? 's' : '') + ' d\'adoption à relire et publier', href: '/admin/histoires' }); %>
+<section class="todo">
+  <h2>À faire aujourd'hui</h2>
+  <% if (todo.length) { %>
+    <% todo.forEach(t => { %><a class="todo-item" href="<%= t.href %>"><span><%= t.icon %></span><strong><%= t.text %></strong><em>Voir →</em></a><% }) %>
+  <% } else { %><p class="todo-done">✅ Tout est à jour, il n'y a rien à valider. Merci !</p><% } %>
+</section>
+
+<h2>Que voulez-vous faire ?</h2>
+<div class="tiles">
+  <a class="tile tile-main" href="/admin/animaux/nouveau"><span class="plus">🐾</span><strong>Ajouter un animal</strong><small>Photo, nom, description</small></a>
+  <a class="tile tile-main" href="/admin/articles/nouveau"><span class="plus">✍️</span><strong>Écrire un article</strong><small>Un conseil pour le blog</small></a>
+  <a class="tile tile-main" href="/admin/histoires/nouveau"><span class="plus">💛</span><strong>Raconter une adoption</strong><small>Une belle histoire</small></a>
+  <a class="tile" href="/admin/animaux"><b><%= stats.animals %></b><strong>animaux à adopter</strong><small><%= stats.distress %> en détresse · gérer la liste</small></a>
+  <a class="tile" href="/admin/livre-d-or"><span class="plus">💌</span><strong>Livre d'or</strong><small>Lire et valider les messages</small></a>
+  <a class="tile" href="/admin/reglages"><span class="plus">⚙️</span><strong>Coordonnées</strong><small>E-mail, téléphone, don…</small></a>
+</div>
+
+<div class="help-card">
+  <div><strong>❓ Un doute ? Besoin d'un rappel ?</strong><p>Le guide explique pas à pas comment faire chaque chose, avec des réponses aux questions courantes.</p></div>
+  <a class="btn" href="/admin/aide">Ouvrir le guide</a>
+</div>
+<%- include('../partials/admin-footer') %>

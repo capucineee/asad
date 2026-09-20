@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+<section class="wrap page-top">
+  <a class="back" href="/animaux">← Tous les animaux</a>
+  <div class="detail">
+    <div class="detail-photo <%= animal.distress && animal.status !== 'adopte' ? 'is-distress' : '' %>">
+      <% if (animal.photo) { %><img src="/uploads/<%= animal.photo %>" alt="<%= animal.name %>">
+      <% } else { %><div class="ph"><%- include('partials/paw') %></div><% } %>
+      <% if (animal.status === 'adopte') { %><span class="badge badge-adopted">Adopté 🎉</span>
+      <% } else if (animal.distress) { %><span class="badge badge-distress"><i></i>En détresse</span><% } %>
+    </div>
+    <div class="detail-info">
+      <h1><%= animal.name %></h1>
+      <ul class="facts">
+        <li><%= animal.species === 'chat' ? 'Chat' : 'Chien' %></li>
+        <% if (animal.sex !== 'inconnu') { %><li><%= animal.sex === 'femelle' ? 'Femelle' : 'Mâle' %></li><% } %>
+        <% if (animal.age) { %><li><%= animal.age %></li><% } %>
+        <li class="st st-<%= animal.status %>"><%= { disponible: 'Cherche une famille', reserve: 'Réservé', adopte: 'Adopté' }[animal.status] %></li>
+      </ul>
+      <% if (animal.distress && animal.status !== 'adopte') { %>
+        <p class="alert-soft"><strong>Cet animal est en détresse</strong> et a besoin d'aide rapidement. Contactez-nous dès aujourd'hui.</p>
+      <% } %>
+      <div class="prose"><%- formatContent(animal.description) %></div>
+      <% if (story) { %><div class="actions"><a class="btn" href="/histoires/<%= story.id %>">Lire son histoire 💛</a></div><% } %>
+      <% if (animal.status !== 'adopte') { %>
+        <div class="actions">
+          <% if (settings.email) { %><a class="btn" href="mailto:<%= settings.email %>?subject=<%= encodeURIComponent('Adoption de ' + animal.name) %>">Je m'intéresse à <%= animal.name %></a><% } %>
+          <% if (settings.phone) { %><a class="btn btn-ghost" href="tel:<%= settings.phone.replace(/\s/g,'') %>"><%= settings.phone %></a><% } %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+<%- include('partials/footer') %>

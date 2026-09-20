@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="fr"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+  <title>Connexion · ASAD</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+  <form class="form-card login" method="post" action="/admin/connexion">
+    <div class="brand-mark big"><%- include('../partials/paw') %></div>
+    <h1>Espace bénévoles</h1>
+    <p class="muted">Connectez-vous pour gérer les annonces.</p>
+    <% if (flash) { %><div class="notice notice-<%= flash.type %>"><%= flash.text %></div><% } %>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label>Adresse e-mail<input type="email" name="email" autocomplete="username" required autofocus></label>
+    <label>Mot de passe<input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="btn" type="submit">Se connecter</button>
+    <p class="hint">Mot de passe oublié ? Demandez à un autre bénévole de le réinitialiser depuis <em>Comptes</em>.</p>
+    <p class="hint"><a href="/">← Retour au site</a></p>
+  </form>
+</body></html>

@@ -1,0 +1,12 @@
+<%- include('partials/header') %>
+<article class="wrap narrow page-top">
+  <a class="back" href="/histoires">← Toutes les histoires</a>
+  <span class="tag"><%= story.pet_name %><%= story.adopter ? ' · chez ' + story.adopter : '' %></span>
+  <h1><%= story.title %></h1>
+  <p class="date">Adopté · <%= fdate(story.created_at) %></p>
+  <% if (story.photo) { %><img class="cover" src="/uploads/<%= story.photo %>" alt="<%= story.pet_name %>"><% } %>
+  <div class="prose"><%- formatContent(story.content) %></div>
+  <div class="cta-inline"><p><strong>Envie d'écrire la prochaine histoire ?</strong> D'autres animaux attendent leur famille.</p><a class="btn" href="/animaux">Voir les animaux</a></div>
+</article>
+<% if (more.length) { %><section class="section tint"><div class="wrap"><h2>D'autres belles histoires</h2><div class="grid grid-3"><% more.forEach(story => { %><%- include('partials/story-card', { story }) %><% }) %></div></div></section><% } %>
+<%- include('partials/footer') %>

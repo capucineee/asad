@@ -1,0 +1,78 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Association pour les chiens & les chats</span>
+      <h1><%= settings.hero_title %></h1>
+      <p class="lead"><%= settings.hero_text %></p>
+      <div class="actions">
+        <a class="btn" href="/animaux">Rencontrer nos animaux</a>
+        <a class="btn btn-ghost" href="/association#aider">Comment aider ?</a>
+      </div>
+      <ul class="stats">
+        <li class="s1"><strong><%= stats.waiting %></strong><span>en attente de famille</span></li>
+        <li class="s2"><strong><%= stats.distress %></strong><span>en détresse</span></li>
+        <li class="s3"><strong><%= stats.adopted %></strong><span>déjà adoptés</span></li>
+      </ul>
+    </div>
+    <div class="hero-art" aria-hidden="true"><%- include('partials/hero-art') %></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Ils attendent leur famille</h2><p class="muted">Les animaux en détresse sont mis en avant : ils ont besoin d'aide en priorité.</p></div>
+      <a class="link" href="/animaux">Voir tous les animaux →</a>
+    </div>
+    <% if (animals.length) { %>
+      <div class="grid"><% animals.forEach(animal => { %><%- include('partials/animal-card', { animal }) %><% }) %></div>
+    <% } else { %><p class="empty">Aucun animal n'est présenté pour le moment. Revenez bientôt !</p><% } %>
+  </div>
+</section>
+
+<% if (stories.length) { %>
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Ils ont trouvé leur famille</h2><p class="muted">Les belles histoires qui donnent envie de continuer.</p></div>
+      <a class="link" href="/histoires">Toutes les histoires →</a>
+    </div>
+    <div class="grid grid-3"><% stories.forEach(story => { %><%- include('partials/story-card', { story }) %><% }) %></div>
+  </div>
+</section>
+<% } %>
+
+<section class="section tint">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Les bons réflexes</h2><p class="muted">Animal errant, chien perdu, chat trouvé… nos conseils pour bien réagir.</p></div>
+      <a class="link" href="/blog">Tous les articles →</a>
+    </div>
+    <% if (posts.length) { %>
+      <div class="grid grid-3"><% posts.forEach(post => { %><%- include('partials/post-card', { post }) %><% }) %></div>
+    <% } else { %><p class="empty">Les premiers articles arrivent bientôt.</p><% } %>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Ils nous ont écrit</h2><p class="muted">Un mot gentil, une adoption réussie ? Le livre d'or est fait pour ça.</p></div>
+      <a class="link" href="/livre-d-or">Lire le livre d'or →</a>
+    </div>
+    <% if (messages.length) { %>
+      <div class="grid grid-3"><% messages.forEach(m => { %>
+        <blockquote class="quote"><p><%= m.message.length > 220 ? m.message.slice(0,220).trim() + '…' : m.message %></p><footer>— <%= m.author %></footer></blockquote>
+      <% }) %></div>
+    <% } else { %><p class="empty">Soyez le premier à laisser un message ! 💌</p><% } %>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap cta-box">
+    <div><h2>Vous pouvez faire la différence</h2><p>Adopter, devenir famille d'accueil, faire un don ou simplement partager : chaque geste compte.</p></div>
+    <a class="btn btn-white" href="/association#aider">Je veux aider</a>
+  </div>
+</section>
+<%- include('partials/footer') %>

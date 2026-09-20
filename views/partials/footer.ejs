@@ -1,0 +1,24 @@
+</main>
+<footer class="site-footer">
+  <div class="wrap foot">
+    <div>
+      <a class="brand" href="/"><img class="logo" src="/logo.svg" alt="ASAD – Association des Animaux en Détresse" width="440" height="200"></a>
+      <p class="muted">Des chiens et des chats à aimer, des bénévoles pour les aider.</p>
+    </div>
+    <div>
+      <h4>Découvrir</h4>
+      <a href="/animaux">Nos animaux</a><a href="/histoires">Histoires d'adoption</a><a href="/blog">Le blog</a><a href="/livre-d-or">Livre d'or</a><a href="/association">L'association</a>
+    </div>
+    <div>
+      <h4>Nous contacter</h4>
+      <% if (settings.email) { %><a href="mailto:<%= settings.email %>"><%= settings.email %></a><% } %>
+      <% if (settings.phone) { %><a href="tel:<%= settings.phone.replace(/\s/g,'') %>"><%= settings.phone %></a><% } %>
+      <% if (settings.facebook) { %><a href="<%= settings.facebook %>" rel="noopener" target="_blank">Facebook</a><% } %>
+      <% if (settings.instagram) { %><a href="<%= settings.instagram %>" rel="noopener" target="_blank">Instagram</a><% } %>
+    </div>
+  </div>
+  <div class="wrap legal"><span>© <%= new Date().getFullYear() %> ASAD – Association des Animaux en Détresse</span><a href="/admin">Espace bénévoles</a></div>
+</footer>
+<script src="/js/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<%- include('../partials/admin-header') %>
+<h1>Livre d'or</h1>
+<p class="lead">Les nouveaux messages ne s'affichent sur le site qu'après votre validation.</p>
+<% if (!messages.length) { %><p class="empty">Aucun message pour le moment.</p><% } %>
+<div class="rows">
+<% messages.forEach(m => { %>
+  <div class="row row-top <%= m.approved ? '' : 'row-pending' %>">
+    <div class="row-main"><strong><%= m.author %></strong> <span class="muted"><%= fdate(m.created_at) %></span>
+      <% if (!m.approved) { %><span class="badge badge-distress inline">À valider</span><% } %>
+      <p><%= m.message %></p></div>
+    <div class="row-actions">
+      <% if (!m.approved) { %><form method="post" action="/admin/livre-d-or/<%= m.id %>/valider"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">Publier</button></form><% } %>
+      <form method="post" action="/admin/livre-d-or/<%= m.id %>/supprimer" data-confirm="Supprimer ce message ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form>
+    </div>
+  </div>
+<% }) %>
+</div>
+<%- include('../partials/admin-footer') %>

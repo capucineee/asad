@@ -1,0 +1,12 @@
+<%- include('partials/header') %>
+<section class="page-head"><div class="wrap">
+  <h1>Ils ont trouvé une famille</h1>
+  <p class="lead">Chaque adoption est une petite victoire. Voici ce que sont devenus nos anciens pensionnaires.</p>
+</div></section>
+<section class="section-tight"><div class="wrap">
+  <% if (stories.length) { %><div class="grid grid-3"><% stories.forEach(story => { %><%- include('partials/story-card', { story }) %><% }) %></div>
+  <% } else { %><p class="empty">Les premières histoires arrivent bientôt. 🐾</p><% } %>
+  <div class="cta-inline"><p><strong>Vous avez adopté un animal grâce à l'ASAD ?</strong> Envoyez-nous votre histoire et une photo, nous serions ravis de la partager !</p>
+  <a class="btn" href="/histoires/proposer">Raconter mon histoire</a></div>
+</div></section>
+<%- include('partials/footer') %>
