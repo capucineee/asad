@@ -70,6 +70,13 @@ const storyCols = db.prepare('PRAGMA table_info(stories)').all().map((c) => c.na
 if (!storyCols.includes('animal_id')) db.exec('ALTER TABLE stories ADD COLUMN animal_id INTEGER REFERENCES animals(id) ON DELETE SET NULL');
 if (!storyCols.includes('pending')) db.exec('ALTER TABLE stories ADD COLUMN pending INTEGER NOT NULL DEFAULT 0');
 
+const adminCols = db.prepare('PRAGMA table_info(admins)').all().map((c) => c.name);
+if (!adminCols.includes('role')) db.exec("ALTER TABLE admins ADD COLUMN role TEXT NOT NULL DEFAULT 'admin'");
+// Il doit toujours exister au moins un super admin : le compte le plus ancien le devient si besoin
+if (!db.prepare("SELECT 1 FROM admins WHERE role = 'super'").get()) {
+  db.exec("UPDATE admins SET role = 'super' WHERE id = (SELECT MIN(id) FROM admins)");
+}
+
 const DEFAULT_SETTINGS = {
   hero_title: 'Chaque chien et chaque chat mérite une famille',
   hero_text:
@@ -117,7 +124,7 @@ function ensureFirstAdmin() {
   if (n > 0) return;
   const email = (process.env.ADMIN_EMAIL || 'admin@asad.fr').toLowerCase();
   const password = process.env.ADMIN_PASSWORD || crypto.randomBytes(5).toString('hex');
-  db.prepare('INSERT INTO admins (name, email, password_hash) VALUES (?, ?, ?)').run(
+  db.prepare("INSERT INTO admins (name, email, password_hash, role) VALUES (?, ?, ?, 'super')").run(
     'Administrateur',
     email,
     hashPassword(password)

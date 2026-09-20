@@ -1,20 +1,34 @@
 <%- include('../partials/admin-header') %>
-<h1>Comptes bénévoles</h1>
-<p class="lead">Toutes les personnes ci-dessous peuvent gérer les annonces, les articles et le livre d'or.</p>
+<% const isSuper = admin.role === 'super'; %>
+<h1><%= isSuper ? 'Comptes bénévoles' : 'Mon compte' %></h1>
+<p class="lead">Toutes ces personnes peuvent gérer les animaux, les articles, les histoires, le livre d'or et les réglages.
+<%= isSuper ? 'Vous êtes super admin : vous seul(e) pouvez créer des comptes et donner ou retirer les droits super admin.' : 'Seul un super admin peut créer ou supprimer des comptes.' %></p>
 <div class="rows">
 <% admins.forEach(a => { %>
-  <div class="row"><div class="row-main"><strong><%= a.name %></strong> <%= a.id === admin.id ? '(vous)' : '' %><span class="muted"><%= a.email %></span></div>
-    <div class="row-actions"><% if (a.id !== admin.id) { %><form method="post" action="/admin/comptes/<%= a.id %>/reinitialiser" data-confirm="Créer un nouveau mot de passe pour <%= a.name %> ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">Nouveau mot de passe</button></form><form method="post" action="/admin/comptes/<%= a.id %>/supprimer" data-confirm="Supprimer le compte de <%= a.name %> ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form><% } %></div></div>
+  <div class="row"><div class="row-main"><strong><%= a.name %> <%= a.id === admin.id ? '(vous)' : '' %>
+      <% if (a.role === 'super') { %><span class="badge badge-distress inline">⭐ Super admin</span><% } else { %><span class="badge badge-soft inline">Administrateur</span><% } %></strong>
+      <% if (isSuper || a.id === admin.id) { %><span class="muted"><%= a.email %></span><% } %></div>
+    <% if (isSuper && a.id !== admin.id) { %>
+    <div class="row-actions">
+      <form method="post" action="/admin/comptes/<%= a.id %>/role" data-confirm="<%= a.role === 'super' ? 'Retirer les droits super admin à ' + a.name + ' ?' : 'Donner les droits super admin à ' + a.name + ' ? Cette personne pourra gérer tous les comptes.' %>"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="role" value="<%= a.role === 'super' ? 'admin' : 'super' %>">
+        <button class="btn btn-sm btn-ghost"><%= a.role === 'super' ? 'Retirer super admin' : '⭐ Nommer super admin' %></button></form>
+      <form method="post" action="/admin/comptes/<%= a.id %>/reinitialiser" data-confirm="Créer un nouveau mot de passe pour <%= a.name %> ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">Nouveau mot de passe</button></form>
+      <form method="post" action="/admin/comptes/<%= a.id %>/supprimer" data-confirm="Supprimer le compte de <%= a.name %> ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form>
+    </div>
+    <% } %></div>
 <% }) %>
 </div>
 <div class="two-col">
+  <% if (isSuper) { %>
   <form class="form-card" method="post" action="/admin/comptes">
     <h2>Ajouter une personne</h2><input type="hidden" name="_csrf" value="<%= csrf %>">
     <label>Prénom / nom<input name="name" required maxlength="60"></label>
     <label>Adresse e-mail<input type="email" name="email" required></label>
     <label>Mot de passe (8 caractères minimum)<input type="text" name="password" minlength="8" required autocomplete="off"></label>
+    <label>Droits<select name="role"><option value="admin">Administrateur (gère le contenu du site)</option><option value="super">Super admin (gère aussi les comptes)</option></select></label>
     <button class="btn" type="submit">Créer le compte</button>
   </form>
+  <% } %>
   <form class="form-card" method="post" action="/admin/comptes/mot-de-passe">
     <h2>Changer mon mot de passe</h2><input type="hidden" name="_csrf" value="<%= csrf %>">
     <label>Mot de passe actuel<input type="password" name="current_password" required autocomplete="current-password"></label>

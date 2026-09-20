@@ -76,7 +76,7 @@ app.use((req, res, next) => {
   req.session.flash = null;
   res.locals.admin = null;
   if (req.session.adminId) {
-    const a = db.prepare('SELECT id, name, email FROM admins WHERE id = ?').get(req.session.adminId);
+    const a = db.prepare('SELECT id, name, email, role FROM admins WHERE id = ?').get(req.session.adminId);
     if (a) res.locals.admin = req.admin = a;
     else req.session = null;
   }
@@ -291,6 +291,13 @@ app.get('/association', (req, res) => res.render('about', { title: "L'associatio
 //  ADMINISTRATION
 // =====================================================================
 const requireAdmin = (req, res, next) => (req.admin ? next() : res.redirect('/admin/connexion'));
+// Actions réservées au super admin (gestion des comptes et des droits)
+const requireSuper = (req, res, next) => {
+  if (req.admin.role === 'super') return next();
+  flash(req, 'error', 'Seul le super admin peut gérer les comptes.');
+  res.redirect('/admin/comptes');
+};
+const superCount = () => db.prepare("SELECT COUNT(*) n FROM admins WHERE role = 'super'").get().n;
 
 app.get('/admin/connexion', (req, res) => {
   if (req.admin) return res.redirect('/admin');
@@ -583,9 +590,9 @@ app.post('/admin/reglages', (req, res) => {
 
 // ----- comptes administrateurs -----
 app.get('/admin/comptes', (req, res) => {
-  res.render('admin/accounts', { title: 'Comptes', admins: db.prepare('SELECT id, name, email, created_at FROM admins ORDER BY id').all() });
+  res.render('admin/accounts', { title: 'Comptes', admins: db.prepare("SELECT id, name, email, role, created_at FROM admins ORDER BY (role = 'super') DESC, id").all() });
 });
-app.post('/admin/comptes', (req, res) => {
+app.post('/admin/comptes', requireSuper, (req, res) => {
   const name = clean(req.body.name, 60);
   const email = clean(req.body.email, 200).toLowerCase();
   const pw = String(req.body.password || '');
@@ -597,7 +604,8 @@ app.post('/admin/comptes', (req, res) => {
     flash(req, 'error', 'Un compte existe déjà avec cette adresse e-mail.');
     return res.redirect('/admin/comptes');
   }
-  db.prepare('INSERT INTO admins (name, email, password_hash) VALUES (?,?,?)').run(name, email, hashPassword(pw));
+  const role = req.body.role === 'super' ? 'super' : 'admin';
+  db.prepare('INSERT INTO admins (name, email, password_hash, role) VALUES (?,?,?,?)').run(name, email, hashPassword(pw), role);
   flash(req, 'ok', `Le compte de ${name} a été créé.`);
   res.redirect('/admin/comptes');
 });
@@ -614,7 +622,7 @@ app.post('/admin/comptes/mot-de-passe', (req, res) => {
   }
   res.redirect('/admin/comptes');
 });
-app.post('/admin/comptes/:id/reinitialiser', (req, res) => {
+app.post('/admin/comptes/:id/reinitialiser', requireSuper, (req, res) => {
   const a = db.prepare('SELECT * FROM admins WHERE id = ?').get(Number(req.params.id));
   if (!a || a.id === req.admin.id) {
     flash(req, 'error', 'Pour votre propre mot de passe, utilisez « Changer mon mot de passe ».');
@@ -626,11 +634,25 @@ app.post('/admin/comptes/:id/reinitialiser', (req, res) => {
   flash(req, 'ok', `Nouveau mot de passe de ${a.name} : ${pw} — notez-le et transmettez-le lui, il ne sera plus affiché.`);
   res.redirect('/admin/comptes');
 });
-app.post('/admin/comptes/:id/supprimer', (req, res) => {
+app.post('/admin/comptes/:id/role', requireSuper, (req, res) => {
+  const a = db.prepare('SELECT * FROM admins WHERE id = ?').get(Number(req.params.id));
+  const role = req.body.role === 'super' ? 'super' : 'admin';
+  if (!a) flash(req, 'error', 'Compte introuvable.');
+  else if (a.role === role) flash(req, 'ok', 'Aucun changement.');
+  else if (role === 'admin' && superCount() <= 1) flash(req, 'error', 'Il doit rester au moins un super admin. Nommez d’abord un autre super admin.');
+  else {
+    db.prepare('UPDATE admins SET role = ? WHERE id = ?').run(role, a.id);
+    flash(req, 'ok', role === 'super' ? `${a.name} est maintenant super admin.` : `${a.name} est maintenant administrateur (sans gestion des comptes).`);
+  }
+  res.redirect('/admin/comptes');
+});
+app.post('/admin/comptes/:id/supprimer', requireSuper, (req, res) => {
   const id = Number(req.params.id);
   const total = db.prepare('SELECT COUNT(*) n FROM admins').get().n;
+  const target = db.prepare('SELECT role FROM admins WHERE id = ?').get(id);
   if (id === req.admin.id) flash(req, 'error', 'Vous ne pouvez pas supprimer votre propre compte.');
   else if (total <= 1) flash(req, 'error', 'Il doit rester au moins un compte administrateur.');
+  else if (target?.role === 'super' && superCount() <= 1) flash(req, 'error', 'Il doit rester au moins un super admin.');
   else {
     db.prepare('DELETE FROM admins WHERE id = ?').run(id);
     flash(req, 'ok', 'Le compte a été supprimé.');
