@@ -66,6 +66,22 @@ function formatContent(text) {
     .join('\n');
 }
 
+// ---------- affichage des animaux (un seul, ou un duo inséparable) ----------
+const sexLabel = (species, sex) =>
+  species === 'chat' ? (sex === 'femelle' ? 'Chatte' : 'Chat') : sex === 'femelle' ? 'Chienne' : 'Chien';
+const isPair = (a) => !!(a.is_pair && a.name2);
+const petName = (a) => (isPair(a) ? `${a.name} & ${a.name2}` : a.name);
+const animalMeta = (a) => {
+  if (!isPair(a)) return sexLabel(a.species, a.sex) + (a.age ? ` · ${a.age}` : '');
+  const count = { chien: 0, chat: 0 };
+  count[a.species] = (count[a.species] || 0) + 1;
+  count[a.species2] = (count[a.species2] || 0) + 1;
+  const parts = [];
+  if (count.chien) parts.push(count.chien > 1 ? '2 chiens' : '1 chien');
+  if (count.chat) parts.push(count.chat > 1 ? '2 chats' : '1 chat');
+  return 'Duo inséparable · ' + parts.join(' et ');
+};
+
 // ---------- variables communes aux vues ----------
 app.use((req, res, next) => {
   if (!req.session.csrf) req.session.csrf = crypto.randomBytes(16).toString('hex');
@@ -80,6 +96,9 @@ app.use((req, res, next) => {
     if (a) res.locals.admin = req.admin = a;
     else req.session = null;
   }
+  res.locals.petName = petName;
+  res.locals.animalMeta = animalMeta;
+  res.locals.sexLabel = sexLabel;
   res.locals.fdate = fdate;
   res.locals.formatContent = formatContent;
   next();
@@ -128,7 +147,7 @@ const uploader = multer({
     destination: UPLOADS,
     filename: (req, file, cb) => cb(null, crypto.randomBytes(12).toString('hex') + extOf(file)),
   }),
-  limits: { fileSize: 12 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 12 * 1024 * 1024, files: 2 },
   fileFilter: (req, file, cb) => cb(null, !!extOf(file)),
 });
 const isHeic = (file) => {
@@ -164,6 +183,23 @@ const upload = (field) => (req, res, next) =>
     if (!(await convertHeic(req.file))) {
       flash(req, 'error', 'Cette photo n’a pas pu être lue. Essayez de la reprendre ou d’en choisir une autre.');
       return res.redirect(back);
+    }
+    next();
+  });
+// Variante pour un formulaire qui porte plusieurs photos (annonce en duo)
+const uploadMany = (names) => (req, res, next) =>
+  uploader.fields(names.map((name) => ({ name, maxCount: 1 })))(req, res, async (err) => {
+    const back = req.get('referer') || '/admin/animaux';
+    if (err) {
+      flash(req, 'error', err.code === 'LIMIT_FILE_SIZE' ? 'Une photo est trop lourde (12 Mo maximum).' : "La photo n'a pas pu être envoyée.");
+      return res.redirect(back);
+    }
+    for (const n of names) {
+      const file = req.files?.[n]?.[0];
+      if (file && !(await convertHeic(file))) {
+        flash(req, 'error', 'Cette photo n’a pas pu être lue. Essayez de la reprendre ou d’en choisir une autre.');
+        return res.redirect(back);
+      }
     }
     next();
   });
@@ -204,7 +240,7 @@ app.get('/', (req, res) => {
 app.get('/animaux', (req, res) => {
   const filter = ['chien', 'chat', 'detresse'].includes(req.query.filtre) ? req.query.filtre : 'tous';
   let where = '1=1';
-  if (filter === 'chien' || filter === 'chat') where = `species = '${filter}'`;
+  if (filter === 'chien' || filter === 'chat') where = `(species = '${filter}' OR (is_pair = 1 AND species2 = '${filter}'))`;
   if (filter === 'detresse') where = "distress = 1 AND status != 'adopte'";
   const animals = db
     .prepare(`SELECT * FROM animals WHERE ${where} ORDER BY (status = 'adopte'), distress DESC, created_at DESC`)
@@ -216,7 +252,7 @@ app.get('/animaux/:id', (req, res, next) => {
   const animal = db.prepare('SELECT * FROM animals WHERE id = ?').get(Number(req.params.id));
   if (!animal) return next();
   const story = db.prepare('SELECT id, title FROM stories WHERE animal_id = ? AND published = 1 ORDER BY created_at DESC').get(animal.id);
-  res.render('animal', { title: animal.name, animal, story });
+  res.render('animal', { title: petName(animal), animal, story });
 });
 
 app.get('/blog', (req, res) => {
@@ -356,17 +392,27 @@ app.get('/admin/animaux/:id', (req, res, next) => {
 function saveAnimal(req, res) {
   const id = Number(req.params.id || 0);
   const old = id ? db.prepare('SELECT * FROM animals WHERE id = ?').get(id) : null;
-  if (!validImage(req.file)) {
-    flash(req, 'error', 'Ce fichier n’est pas une photo valide (JPG, PNG ou WebP).');
-    return res.redirect(req.get('referer') || '/admin/animaux');
-  }
   const b = req.body;
+  const f1 = req.files?.photo?.[0];
+  const f2 = req.files?.photo2?.[0];
+  const drop = () => {
+    if (f1) removeFile(f1.filename);
+    if (f2) removeFile(f2.filename);
+  };
+  const back = req.get('referer') || '/admin/animaux';
+  const fail = (msg) => {
+    drop();
+    flash(req, 'error', msg);
+    return res.redirect(back);
+  };
+  if (!validImage(f1) || !validImage(f2)) return fail('Ce fichier n’est pas une photo valide (JPG, PNG ou WebP).');
+
   const name = clean(b.name, 60);
-  if (!name) {
-    if (req.file) removeFile(req.file.filename);
-    flash(req, 'error', 'Le nom de l’animal est obligatoire.');
-    return res.redirect(req.get('referer') || '/admin/animaux');
-  }
+  if (!name) return fail('Le nom de l’animal est obligatoire.');
+  const pair = b.is_pair ? 1 : 0;
+  const name2 = clean(b.name2, 60);
+  if (pair && !name2) return fail('Indiquez le nom du second animal, ou décochez « deux animaux inséparables ».');
+
   const data = {
     name,
     species: b.species === 'chat' ? 'chat' : 'chien',
@@ -375,35 +421,55 @@ function saveAnimal(req, res) {
     description: clean(b.description, 5000),
     distress: b.distress ? 1 : 0,
     status: STATUSES.includes(b.status) ? b.status : 'disponible',
+    is_pair: pair,
+    name2: pair ? name2 : '',
+    species2: b.species2 === 'chat' ? 'chat' : 'chien',
+    sex2: SEXES.includes(b.sex2) ? b.sex2 : 'inconnu',
+    age2: pair ? clean(b.age2, 40) : '',
   };
-  let photo = old ? old.photo : null;
-  if (req.file) {
-    removeFile(photo);
-    photo = req.file.filename;
-  } else if (old && b.remove_photo) {
-    removeFile(photo);
-    photo = null;
+
+  // Photo remplacée, retirée, ou inchangée — pour chacun des deux animaux
+  const pick = (file, current, remove) => {
+    if (file) {
+      removeFile(current);
+      return file.filename;
+    }
+    if (old && remove) {
+      removeFile(current);
+      return null;
+    }
+    return current;
+  };
+  const photo = pick(f1, old ? old.photo : null, b.remove_photo);
+  let photo2 = pick(f2, old ? old.photo2 : null, b.remove_photo2);
+  if (!pair && photo2) {
+    removeFile(photo2);
+    photo2 = null;
   }
+
   if (old) {
-    db.prepare('UPDATE animals SET name=?, species=?, sex=?, age=?, description=?, distress=?, status=?, photo=? WHERE id=?').run(
-      data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo, id
-    );
+    db.prepare(
+      'UPDATE animals SET name=?, species=?, sex=?, age=?, description=?, distress=?, status=?, photo=?, is_pair=?, name2=?, species2=?, sex2=?, age2=?, photo2=? WHERE id=?'
+    ).run(data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo,
+      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, id);
   } else {
-    db.prepare('INSERT INTO animals (name, species, sex, age, description, distress, status, photo) VALUES (?,?,?,?,?,?,?,?)').run(
-      data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo
-    );
+    db.prepare(
+      'INSERT INTO animals (name, species, sex, age, description, distress, status, photo, is_pair, name2, species2, sex2, age2, photo2) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+    ).run(data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo,
+      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2);
   }
-  flash(req, 'ok', old ? `${data.name} a bien été mis à jour.` : `${data.name} a été ajouté au site.`);
+  const shown = petName({ ...data, name2: data.name2 });
+  flash(req, 'ok', old ? `${shown} a bien été mis à jour.` : `${shown} a été ajouté au site.`);
   res.redirect('/admin/animaux');
 }
-app.post('/admin/animaux', upload('photo'), checkCsrf, saveAnimal);
-app.post('/admin/animaux/:id', upload('photo'), checkCsrf, saveAnimal);
+app.post('/admin/animaux', uploadMany(['photo', 'photo2']), checkCsrf, saveAnimal);
+app.post('/admin/animaux/:id', uploadMany(['photo', 'photo2']), checkCsrf, saveAnimal);
 
 app.post('/admin/animaux/:id/detresse', (req, res) => {
   const a = db.prepare('SELECT * FROM animals WHERE id = ?').get(Number(req.params.id));
   if (a) {
     db.prepare('UPDATE animals SET distress = ? WHERE id = ?').run(a.distress ? 0 : 1, a.id);
-    flash(req, 'ok', a.distress ? `Le badge « En détresse » a été retiré pour ${a.name}.` : `${a.name} porte maintenant le badge « En détresse ».`);
+    flash(req, 'ok', a.distress ? `Le badge « En détresse » a été retiré pour ${petName(a)}.` : `${petName(a)} porte maintenant le badge « En détresse ».`);
   }
   res.redirect('/admin/animaux');
 });
@@ -411,7 +477,7 @@ app.post('/admin/animaux/:id/adopte', (req, res) => {
   const a = db.prepare('SELECT * FROM animals WHERE id = ?').get(Number(req.params.id));
   if (a) {
     db.prepare("UPDATE animals SET status = 'adopte', distress = 0 WHERE id = ?").run(a.id);
-    flash(req, 'ok', `Bravo ! ${a.name} est adopté 🎉 Souhaitez-vous raconter son histoire ?`, { href: `/admin/histoires/nouveau?animal=${a.id}`, label: `Écrire l’histoire de ${a.name}` });
+    flash(req, 'ok', `Bravo ! ${petName(a)} est adopté 🎉 Souhaitez-vous raconter son histoire ?`, { href: `/admin/histoires/nouveau?animal=${a.id}`, label: `Écrire l’histoire de ${petName(a)}` });
   }
   res.redirect('/admin/animaux');
 });
@@ -419,8 +485,9 @@ app.post('/admin/animaux/:id/supprimer', (req, res) => {
   const a = db.prepare('SELECT * FROM animals WHERE id = ?').get(Number(req.params.id));
   if (a) {
     removeFile(a.photo);
+    removeFile(a.photo2);
     db.prepare('DELETE FROM animals WHERE id = ?').run(a.id);
-    flash(req, 'ok', `${a.name} a été supprimé.`);
+    flash(req, 'ok', `${petName(a)} a été supprimé.`);
   }
   res.redirect('/admin/animaux');
 });

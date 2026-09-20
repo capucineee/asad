@@ -1,11 +1,13 @@
 <%- include('../partials/admin-header') %>
 <a class="back" href="/admin/animaux">← Retour à la liste</a>
-<h1><%= animal.id ? 'Modifier ' + animal.name : 'Ajouter un animal' %></h1>
+<h1><%= animal.id ? 'Modifier ' + petName(animal) : 'Ajouter un animal' %></h1>
 <p class="lead">Remplissez ce que vous savez : seul le nom est obligatoire. Vous pourrez toujours modifier plus tard.</p>
 <form class="form-card wide" method="post" enctype="multipart/form-data" data-guard action="/admin/animaux<%= animal.id ? '/' + animal.id : '' %>">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
+
   <div class="step"><b>1</b> La photo</div>
-  <%- include('../partials/photo-field', { label: 'Photo de l’animal', name: 'photo', current: animal.photo }) %>
+  <%- include('../partials/photo-field', { label: 'Photo de l’animal', name: 'photo', current: animal.photo, removeField: 'remove_photo' }) %>
+
   <div class="step"><b>2</b> Qui est-ce ?</div>
   <label>Son nom<input name="name" value="<%= animal.name || '' %>" maxlength="60" required placeholder="ex : Noisette"></label>
   <div class="two">
@@ -13,11 +15,27 @@
     <label>Sexe<select name="sex"><option value="femelle" <%= animal.sex === 'femelle' ? 'selected' : '' %>>Femelle</option><option value="male" <%= animal.sex === 'male' ? 'selected' : '' %>>Mâle</option><option value="inconnu" <%= animal.sex === 'inconnu' ? 'selected' : '' %>>Je ne sais pas</option></select></label>
   </div>
   <label>Son âge<input name="age" value="<%= animal.age || '' %>" placeholder="ex : 3 ans, 6 mois" maxlength="40"></label>
-  <div class="step"><b>3</b> Son histoire</div>
-  <label>Description<textarea name="description" rows="7" maxlength="5000" placeholder="Son caractère, son histoire, avec qui il s'entend bien (enfants, chats, chiens)…"><%= animal.description || '' %></textarea><span class="hint">Décrivez-le comme si vous le présentiez à un ami. Laissez une ligne vide pour faire un nouveau paragraphe.</span></label>
-  <div class="step"><b>4</b> Sa situation</div>
+
+  <label class="check check-duo"><input type="checkbox" name="is_pair" value="1" data-pair-toggle <%= animal.is_pair ? 'checked' : '' %>> <span><strong>💞 Ce sont deux animaux inséparables</strong><br><small>Une seule annonce pour les deux : ils ne seront proposés qu'en adoption commune.</small></span></label>
+
+  <div class="duo-block" data-pair-block hidden>
+    <div class="step"><b>+</b> Le second animal</div>
+    <label>Son nom<input name="name2" value="<%= animal.name2 || '' %>" maxlength="60" placeholder="ex : Filou"></label>
+    <div class="two">
+      <label>C'est un…<select name="species2"><option value="chien" <%= animal.species2 !== 'chat' ? 'selected' : '' %>>🐶 Chien</option><option value="chat" <%= animal.species2 === 'chat' ? 'selected' : '' %>>🐱 Chat</option></select></label>
+      <label>Sexe<select name="sex2"><option value="femelle" <%= animal.sex2 === 'femelle' ? 'selected' : '' %>>Femelle</option><option value="male" <%= animal.sex2 === 'male' ? 'selected' : '' %>>Mâle</option><option value="inconnu" <%= animal.sex2 === 'inconnu' || !animal.sex2 ? 'selected' : '' %>>Je ne sais pas</option></select></label>
+    </div>
+    <label>Son âge<input name="age2" value="<%= animal.age2 || '' %>" placeholder="ex : 5 ans" maxlength="40"></label>
+    <%- include('../partials/photo-field', { label: 'Photo du second animal', name: 'photo2', current: animal.photo2, removeField: 'remove_photo2' }) %>
+  </div>
+
+  <div class="step"><b>3</b> Leur histoire</div>
+  <label>Description<textarea name="description" rows="7" maxlength="5000" placeholder="Leur caractère, leur histoire, avec qui ils s'entendent bien (enfants, chats, chiens)…"><%= animal.description || '' %></textarea><span class="hint">Décrivez-les comme si vous les présentiez à un ami. Laissez une ligne vide pour faire un nouveau paragraphe.</span></label>
+
+  <div class="step"><b>4</b> La situation</div>
   <label>Situation actuelle<select name="status"><option value="disponible" <%= animal.status === 'disponible' ? 'selected' : '' %>>Cherche une famille</option><option value="reserve" <%= animal.status === 'reserve' ? 'selected' : '' %>>Réservé (une famille est intéressée)</option><option value="adopte" <%= animal.status === 'adopte' ? 'selected' : '' %>>Adopté 🎉</option></select></label>
-  <label class="check check-red"><input type="checkbox" name="distress" value="1" <%= animal.distress ? 'checked' : '' %>> <span><strong>Animal en détresse</strong><br><small>Cochez pour afficher le badge rouge « En détresse ». L'animal passera en premier sur le site.</small></span></label>
+  <label class="check check-red"><input type="checkbox" name="distress" value="1" <%= animal.distress ? 'checked' : '' %>> <span><strong>En détresse</strong><br><small>Cochez pour afficher le badge rouge « En détresse » et passer en premier sur le site.</small></span></label>
+
   <div class="actions sticky-actions"><button class="btn" type="submit" data-busy="Enregistrement…">✓ Enregistrer</button><a class="btn btn-ghost" href="/admin/animaux">Annuler</a></div>
 </form>
 <%- include('../partials/admin-footer') %>

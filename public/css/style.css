@@ -351,3 +351,18 @@ details p { margin: 10px 0 0; }
   .admin-bar .nav.open { display: flex; }
   .admin-bar .nav a, .admin-bar .linkbtn { padding: 13px 18px; text-align: left; }
 }
+
+/* ---------- annonce pour deux animaux inséparables ---------- */
+.thumb-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.thumb-duo img { width: 100%; height: 100%; object-fit: cover; }
+.badge-duo { top: auto; bottom: 12px; background: #fff; color: var(--red-dark); box-shadow: var(--shadow-soft); }
+.detail-media { display: grid; gap: 20px; }
+.detail-media.is-duo { grid-template-columns: 1fr 1fr; }
+figure.detail-photo { margin: 0; position: relative; aspect-ratio: auto; overflow: visible; border-radius: 0; background: none; box-shadow: none; }
+figure.detail-photo > img, figure.detail-photo > .ph { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 40px; background: var(--red-soft); box-shadow: var(--shadow-soft); }
+figure.detail-photo.is-distress > img, figure.detail-photo.is-distress > .ph { box-shadow: 0 0 0 5px var(--red), var(--shadow); }
+figure.detail-photo figcaption { text-align: center; font-weight: 800; margin-top: 12px; font-size: .95rem; }
+.duo-note { background: var(--butter); padding: 14px 22px; border-radius: 22px; }
+.check-duo { background: var(--peach); padding: 18px; border-radius: 22px; }
+.duo-block { background: var(--red-soft); border-radius: 26px; padding: 2px 22px 8px; margin-bottom: 22px; }
+.duo-block .step b { background: var(--red-dark); }

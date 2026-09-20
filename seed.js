@@ -12,6 +12,13 @@ const animals = [
 if (!hasAnimals) for (const [n, s, x, a, d, dis] of animals)
   db.prepare('INSERT INTO animals (name, species, sex, age, description, distress) VALUES (?,?,?,?,?,?)').run(n, s, x, a, d, dis);
 if (!hasAnimals) db.prepare("UPDATE animals SET status='adopte' WHERE name='Max'").run();
+// Exemple d'annonce pour deux animaux inséparables
+if (!hasAnimals)
+  db.prepare(
+    'INSERT INTO animals (name, species, sex, age, description, is_pair, name2, species2, sex2, age2) VALUES (?,?,?,?,?,1,?,?,?,?)'
+  ).run('Iris', 'chien', 'femelle', '3 ans',
+    "Iris et Pacha ont grandi ensemble et ne se quittent jamais. Ils dorment collés l'un à l'autre et se cherchent dès qu'ils sont séparés.\n\nNous cherchons une famille prête à les accueillir tous les deux.",
+    'Pacha', 'chat', 'male', '5 ans');
 
 const posts = [
   ['Vous avez trouvé un animal errant : les bons réflexes', 'Bons réflexes',

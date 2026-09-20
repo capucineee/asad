@@ -1,14 +1,18 @@
+<% const duo = animal.is_pair && animal.name2; %>
 <a class="card animal <%= animal.distress && animal.status !== 'adopte' ? 'is-distress' : '' %> <%= animal.status === 'adopte' ? 'is-adopted' : '' %>" href="/animaux/<%= animal.id %>">
-  <div class="thumb">
-    <% if (animal.photo) { %><img src="/uploads/<%= animal.photo %>" alt="<%= animal.name %>, <%= animal.species %>" loading="lazy">
+  <div class="thumb <%= duo && animal.photo && animal.photo2 ? 'thumb-duo' : '' %>">
+    <% if (animal.photo || animal.photo2) { %>
+      <% if (animal.photo) { %><img src="/uploads/<%= animal.photo %>" alt="<%= animal.name %>" loading="lazy"><% } %>
+      <% if (duo && animal.photo2) { %><img src="/uploads/<%= animal.photo2 %>" alt="<%= animal.name2 %>" loading="lazy"><% } %>
     <% } else { %><div class="ph"><%- include('paw') %></div><% } %>
     <% if (animal.status === 'adopte') { %><span class="badge badge-adopted">Adopté 🎉</span>
     <% } else if (animal.distress) { %><span class="badge badge-distress"><i></i>En détresse</span>
     <% } else if (animal.status === 'reserve') { %><span class="badge badge-soft">Réservé</span><% } %>
+    <% if (duo) { %><span class="badge badge-duo">💞 Inséparables</span><% } %>
   </div>
   <div class="card-body">
-    <h3><%= animal.name %></h3>
-    <p class="meta"><%= animal.species === 'chat' ? (animal.sex === 'femelle' ? 'Chatte' : 'Chat') : (animal.sex === 'femelle' ? 'Chienne' : 'Chien') %><% if (animal.age) { %> · <%= animal.age %><% } %></p>
+    <h3><%= petName(animal) %></h3>
+    <p class="meta"><%= animalMeta(animal) %></p>
     <p class="excerpt"><%= animal.description.length > 110 ? animal.description.slice(0, 110).trim() + '…' : animal.description %></p>
   </div>
 </a>

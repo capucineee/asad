@@ -94,6 +94,18 @@ if (!db.prepare("SELECT 1 FROM admins WHERE role = 'super'").get()) {
   db.exec("UPDATE admins SET role = 'super' WHERE id = (SELECT MIN(id) FROM admins)");
 }
 
+// Duo d'animaux inséparables : un second animal sur la même annonce
+const animalCols = db.prepare('PRAGMA table_info(animals)').all().map((c) => c.name);
+const addAnimalCol = (name, sql) => {
+  if (!animalCols.includes(name)) db.exec(`ALTER TABLE animals ADD COLUMN ${sql}`);
+};
+addAnimalCol('is_pair', 'is_pair INTEGER NOT NULL DEFAULT 0');
+addAnimalCol('name2', "name2 TEXT NOT NULL DEFAULT ''");
+addAnimalCol('species2', "species2 TEXT NOT NULL DEFAULT 'chien'");
+addAnimalCol('sex2', "sex2 TEXT NOT NULL DEFAULT 'inconnu'");
+addAnimalCol('age2', "age2 TEXT NOT NULL DEFAULT ''");
+addAnimalCol('photo2', 'photo2 TEXT');
+
 const DEFAULT_SETTINGS = {
   hero_title: 'Chaque chien et chaque chat mérite une famille',
   hero_text:

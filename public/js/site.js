@@ -99,3 +99,14 @@ document.querySelectorAll('form[data-guard]').forEach((f) => {
     }
   });
 });
+
+// Annonce en duo : le second animal ne s'affiche que si la case est cochée
+const pairToggle = document.querySelector('[data-pair-toggle]');
+if (pairToggle) {
+  const pairBlock = document.querySelector('[data-pair-block]');
+  const syncPair = () => {
+    pairBlock.hidden = !pairToggle.checked;
+  };
+  pairToggle.addEventListener('change', syncPair);
+  syncPair();
+}

@@ -13,21 +13,22 @@
 </div>
 <div class="rows">
 <% animals.forEach(a => { %>
-  <div class="row" data-item data-name="<%= a.name.toLowerCase() %>" data-tags="<%= [a.species, a.distress ? 'distress' : '', a.status === 'adopte' ? 'adopte' : ''].join(' ') %>">
+  <div class="row" data-item data-name="<%= petName(a).toLowerCase() %>" data-tags="<%= [a.species, a.is_pair && a.name2 ? a.species2 : '', a.distress ? 'distress' : '', a.status === 'adopte' ? 'adopte' : ''].join(' ') %>">
     <div class="row-thumb"><% if (a.photo) { %><img src="/uploads/<%= a.photo %>" alt=""><% } else { %><div class="ph"><%- include('../partials/paw') %></div><% } %></div>
     <div class="row-main">
-      <strong><%= a.species === 'chat' ? '🐱' : '🐶' %> <%= a.name %></strong>
+      <strong><%= a.species === 'chat' ? '🐱' : '🐶' %> <%= petName(a) %></strong>
       <span class="muted"><%= { disponible: 'Cherche une famille', reserve: 'Réservé', adopte: 'Adopté 🎉' }[a.status] %></span>
+      <% if (a.is_pair && a.name2) { %><span class="badge badge-duo inline">💞 Inséparables</span><% } %>
       <% if (a.distress) { %><span class="badge badge-distress inline"><i></i>En détresse</span><% } %>
     </div>
     <div class="row-actions">
       <% if (a.status !== 'adopte') { %>
       <form method="post" action="/admin/animaux/<%= a.id %>/detresse"><input type="hidden" name="_csrf" value="<%= csrf %>">
         <button class="btn btn-sm <%= a.distress ? 'btn-ghost' : 'btn-outline-red' %>"><%= a.distress ? 'Retirer « En détresse »' : '🚨 Signaler en détresse' %></button></form>
-      <form method="post" action="/admin/animaux/<%= a.id %>/adopte" data-confirm="<%= a.name %> a trouvé une famille ? Il sera marqué comme adopté."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">🎉 Il est adopté</button></form>
+      <form method="post" action="/admin/animaux/<%= a.id %>/adopte" data-confirm="<%= petName(a) %> a trouvé une famille ? Il sera marqué comme adopté."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-ghost">🎉 Il est adopté</button></form>
       <% } %>
       <a class="btn btn-sm btn-ghost" href="/admin/animaux/<%= a.id %>">✏️ Modifier</a>
-      <form method="post" action="/admin/animaux/<%= a.id %>/supprimer" data-confirm="Supprimer <%= a.name %> définitivement ? Cette action est irréversible."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form>
+      <form method="post" action="/admin/animaux/<%= a.id %>/supprimer" data-confirm="Supprimer <%= petName(a) %> définitivement ? Cette action est irréversible."><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm btn-danger">Supprimer</button></form>
     </div>
   </div>
 <% }) %>
