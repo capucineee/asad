@@ -13,7 +13,7 @@
     <select name="animal_id"><option value="">— Aucune —</option>
       <% animals.forEach(a => { %><option value="<%= a.id %>" <%= story.animal_id === a.id ? 'selected' : '' %>><%= a.name %> (<%= a.species === 'chat' ? 'chat' : 'chien' %><%= a.status === 'adopte' ? ', adopté' : '' %>)</option><% }) %>
     </select>
-    <span class="hint">Un bouton « Lire son histoire » apparaîtra sur la fiche de cet animal.</span>
+    <span class="hint">Un bouton « Lire son histoire » apparaîtra sur sa fiche, et celle-ci passera automatiquement en « adopté » à la publication.</span>
   </label>
   <label>Titre de l'histoire<input name="title" value="<%= story.title || '' %>" maxlength="120" placeholder="ex : De la rue au canapé" required></label>
   <label>L'histoire

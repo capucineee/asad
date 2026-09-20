@@ -77,6 +77,20 @@ function formatContent(text) {
     .join('\n');
 }
 
+// ---------- comptage des animaux ----------
+// Une annonce en duo représente DEUX animaux : on compte les têtes, pas les annonces.
+const HEADS = "CASE WHEN is_pair = 1 AND name2 != '' THEN 2 ELSE 1 END";
+const countHeads = (where) => db.prepare(`SELECT COALESCE(SUM(${HEADS}), 0) AS n FROM animals WHERE ${where}`).get().n;
+// Un animal est « adopté » s'il est marqué comme tel, ou s'il a une histoire d'adoption
+// publiée. On ne compte pas deux fois ceux qui sont dans les deux cas.
+const countAdopted = () =>
+  countHeads("status = 'adopte'") +
+  db.prepare(
+    `SELECT COUNT(*) AS n FROM stories s
+     WHERE s.published = 1
+       AND NOT EXISTS (SELECT 1 FROM animals a WHERE a.id = s.animal_id AND a.status = 'adopte')`
+  ).get().n;
+
 // ---------- partage sur les réseaux sociaux ----------
 // Facebook a besoin d'adresses complètes (https://…) pour afficher une vignette
 const absUrl = (req, p) => `${req.protocol}://${req.get('host')}${p}`;
@@ -259,9 +273,9 @@ app.get('/', (req, res) => {
   const stories = db.prepare('SELECT * FROM stories WHERE published = 1 ORDER BY created_at DESC LIMIT 3').all();
   const messages = db.prepare('SELECT * FROM guestbook WHERE approved = 1 ORDER BY created_at DESC LIMIT 3').all();
   const stats = {
-    adopted: db.prepare("SELECT COUNT(*) n FROM animals WHERE status = 'adopte'").get().n,
-    waiting: db.prepare("SELECT COUNT(*) n FROM animals WHERE status != 'adopte'").get().n,
-    distress: db.prepare("SELECT COUNT(*) n FROM animals WHERE distress = 1 AND status != 'adopte'").get().n,
+    adopted: countAdopted(),
+    waiting: countHeads("status != 'adopte'"),
+    distress: countHeads("distress = 1 AND status != 'adopte'"),
   };
   res.render('home', { title: null, animals, posts, stories, messages, stats });
 });
@@ -410,8 +424,8 @@ app.get('/admin', (req, res) => {
   res.render('admin/dashboard', {
     title: 'Tableau de bord',
     stats: {
-      animals: c("SELECT COUNT(*) n FROM animals WHERE status != 'adopte'"),
-      distress: c("SELECT COUNT(*) n FROM animals WHERE distress = 1 AND status != 'adopte'"),
+      animals: countHeads("status != 'adopte'"),
+      distress: countHeads("distress = 1 AND status != 'adopte'"),
       posts: c('SELECT COUNT(*) n FROM posts'),
       pending: c('SELECT COUNT(*) n FROM guestbook WHERE approved = 0'),
       pendingStories: c('SELECT COUNT(*) n FROM stories WHERE pending = 1'),
@@ -655,14 +669,37 @@ function saveStory(req, res) {
       pet, species, adopter, title, content, photo, published, animalId
     );
   }
-  flash(req, 'ok', published ? `L’histoire de ${pet} est publiée.` : 'L’histoire est enregistrée en brouillon (non visible).');
+  // Une histoire d'adoption publiée signifie que l'animal a trouvé sa famille :
+  // sa fiche passe automatiquement en « adopté », pour ne pas rester dans les annonces.
+  let alsoAdopted = null;
+  if (published && animalId) {
+    const a = db.prepare("SELECT * FROM animals WHERE id = ? AND status != 'adopte'").get(animalId);
+    if (a) {
+      db.prepare("UPDATE animals SET status = 'adopte', distress = 0 WHERE id = ?").run(animalId);
+      alsoAdopted = petName(a);
+    }
+  }
+  flash(req, 'ok',
+    published
+      ? `L’histoire de ${pet} est publiée.` + (alsoAdopted ? ` La fiche de ${alsoAdopted} est passée en « adopté ».` : '')
+      : 'L’histoire est enregistrée en brouillon (non visible).');
   res.redirect('/admin/histoires');
 }
 app.post('/admin/histoires', upload('photo'), checkCsrf, saveStory);
 app.post('/admin/histoires/:id', upload('photo'), checkCsrf, saveStory);
 app.post('/admin/histoires/:id/valider', (req, res) => {
-  db.prepare('UPDATE stories SET published = 1, pending = 0 WHERE id = ?').run(Number(req.params.id));
-  flash(req, 'ok', 'L’histoire est maintenant publiée sur le site.');
+  const id = Number(req.params.id);
+  const st = db.prepare('SELECT * FROM stories WHERE id = ?').get(id);
+  db.prepare('UPDATE stories SET published = 1, pending = 0 WHERE id = ?').run(id);
+  let alsoAdopted = null;
+  if (st?.animal_id) {
+    const a = db.prepare("SELECT * FROM animals WHERE id = ? AND status != 'adopte'").get(st.animal_id);
+    if (a) {
+      db.prepare("UPDATE animals SET status = 'adopte', distress = 0 WHERE id = ?").run(a.id);
+      alsoAdopted = petName(a);
+    }
+  }
+  flash(req, 'ok', 'L’histoire est maintenant publiée sur le site.' + (alsoAdopted ? ` La fiche de ${alsoAdopted} est passée en « adopté ».` : ''));
   res.redirect('/admin/histoires');
 });
 app.post('/admin/histoires/:id/supprimer', (req, res) => {

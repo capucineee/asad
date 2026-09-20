@@ -85,7 +85,9 @@ if (!db.prepare('SELECT COUNT(*) n FROM stories').get().n) {
   db.prepare('INSERT INTO stories (pet_name, species, adopter, title, content) VALUES (?,?,?,?,?)').run(
     'Nala', 'chat', 'Sophie et sa famille', 'De la rue au canapé',
     "Nala a été trouvée toute maigre sous une voiture, un soir de pluie. Elle avait peur de tout.\n\nAprès quelques semaines chez sa famille d'accueil, elle a rencontré Sophie, et c'est le coup de foudre. Aujourd'hui, Nala ronronne dès le réveil et règne sur le canapé.");
-  db.prepare('INSERT INTO stories (pet_name, species, adopter, title, content) VALUES (?,?,?,?,?)').run(
+  // Histoire reliée à la fiche de Max : sans ce lien, l'animal serait compté deux fois
+  const maxId = db.prepare("SELECT id FROM animals WHERE name = 'Max'").get()?.id ?? null;
+  db.prepare('INSERT INTO stories (pet_name, species, adopter, title, content, animal_id) VALUES (?,?,?,?,?,?)').run(
     'Max', 'chien', 'Marc', 'Un papy heureux',
-    "À 10 ans, Max pensait avoir tout perdu. Marc, retraité, cherchait un compagnon de promenade calme.\n\nDepuis, ils font ensemble deux balades par jour, et Max a retrouvé toute sa joie de vivre.");
+    "À 10 ans, Max pensait avoir tout perdu. Marc, retraité, cherchait un compagnon de promenade calme.\n\nDepuis, ils font ensemble deux balades par jour, et Max a retrouvé toute sa joie de vivre.", maxId);
 }
