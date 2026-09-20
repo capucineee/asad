@@ -1,14 +1,14 @@
 {
   "name": "asad-site",
   "version": "1.0.0",
-  "description": "Site de l'ASAD – Association des Animaux en Détresse",
+  "description": "Site de l'ASAD \u2013 Association des Animaux en D\u00e9tresse",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "seed": "node seed.js"
   },
   "engines": {
-    "node": ">=22.5"
+    "node": ">=22.13"
   },
   "dependencies": {
     "cookie-session": "^2.1.1",

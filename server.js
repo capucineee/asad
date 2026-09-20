@@ -27,6 +27,7 @@ app.use((req, res, next) => {
   });
   next();
 });
+app.get('/health', (req, res) => res.type('text').send('ok')); // contrôle de santé (hébergeur)
 app.use('/uploads', express.static(UPLOADS, { maxAge: '7d' }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: PROD ? '1d' : 0 }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
