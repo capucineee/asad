@@ -654,6 +654,21 @@ app.post('/admin/articles/bibliotheque/:key', (req, res) => {
   res.redirect('/admin/articles');
 });
 
+// Publier un article (ou tous les brouillons) sans ouvrir le formulaire
+app.post('/admin/articles/tout/publier', (req, res) => {
+  const n = db.prepare('UPDATE posts SET published = 1 WHERE published = 0').run().changes;
+  flash(req, 'ok', n ? `${n} article${n > 1 ? 's sont maintenant publiés' : ' est maintenant publié'} sur le blog.` : 'Il n’y a aucun brouillon à publier.',
+    n ? { href: '/blog', label: 'Voir le blog' } : undefined);
+  res.redirect('/admin/articles');
+});
+app.post('/admin/articles/:id/publier', (req, res) => {
+  const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(Number(req.params.id));
+  if (p) {
+    db.prepare('UPDATE posts SET published = 1 WHERE id = ?').run(p.id);
+    flash(req, 'ok', `« ${p.title} » est publié sur le blog.`, { href: `/blog/${p.slug}`, label: 'Voir l’article' });
+  }
+  res.redirect('/admin/articles');
+});
 app.post('/admin/articles/:id/supprimer', (req, res) => {
   const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(Number(req.params.id));
   if (p) {

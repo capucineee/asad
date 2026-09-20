@@ -389,3 +389,6 @@ figure.detail-photo figcaption { text-align: center; font-weight: 800; margin-to
 .library-head h2 { margin: 0 0 4px; font-size: 1.4rem; }
 .library-head p { margin: 0; max-width: 60ch; }
 .library .rows { margin-top: 18px; }
+
+.draft-banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin: 6px 0 20px; padding: 18px 22px; background: var(--butter); border-radius: 24px; }
+.draft-banner form { margin: 0; }
