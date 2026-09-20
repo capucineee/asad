@@ -74,8 +74,8 @@ const DEFAULT_SETTINGS = {
   hero_title: 'Chaque chien et chaque chat mérite une famille',
   hero_text:
     "L'ASAD recueille, soigne et replace les animaux en détresse. Découvrez ceux qui attendent une main tendue, ou aidez-nous à en sauver d'autres.",
-  email: 'contact@asad.fr',
-  phone: '',
+  email: 'asad13@wanadoo.fr',
+  phone: '06 63 39 05 29',
   address: '',
   facebook: '',
   instagram: '',
