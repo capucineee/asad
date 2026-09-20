@@ -382,3 +382,10 @@ figure.detail-photo figcaption { text-align: center; font-weight: 800; margin-to
 .share-btn.fb:hover { background: #1877f2; }
 .share-btn.wa:hover { background: #25d366; }
 .share-btn.copy:hover { background: var(--red); }
+
+/* ---------- bibliothèque d'articles prêts à publier ---------- */
+.library { margin-top: 40px; padding: 26px; background: var(--butter); border-radius: 32px; }
+.library-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.library-head h2 { margin: 0 0 4px; font-size: 1.4rem; }
+.library-head p { margin: 0; max-width: 60ch; }
+.library .rows { margin-top: 18px; }

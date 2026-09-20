@@ -41,7 +41,7 @@ document.querySelectorAll('[data-photo-field]').forEach((box) => {
 });
 
 // Boutons de mise en forme des articles
-const insertions = { title: '\n\n## Mon sous-titre\n', list: '\n\n- Premier point\n- Deuxième point\n- Troisième point\n' };
+const insertions = { title: '\n\n## Mon sous-titre\n', list: '\n\n- Premier point\n- Deuxième point\n- Troisième point\n', bold: '**mots en gras**' };
 document.querySelectorAll('[data-insert]').forEach((b) =>
   b.addEventListener('click', () => {
     const t = document.getElementById('content');

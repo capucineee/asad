@@ -15,4 +15,28 @@
   </div>
 <% }) %>
 </div>
+<% if (library.length) { %>
+<section class="library">
+  <div class="library-head">
+    <div>
+      <h2>📚 Articles prêts à publier</h2>
+      <p class="muted">Des conseils déjà rédigés pour votre blog. Ils sont ajoutés <strong>en brouillon</strong> : vous les relisez, les adaptez si besoin, puis vous les publiez.</p>
+    </div>
+    <% if (library.length > 1) { %>
+    <form method="post" action="/admin/articles/bibliotheque/tout" data-confirm="Ajouter les <%= library.length %> articles à votre blog, en brouillon ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost">Tout ajouter (<%= library.length %>)</button></form>
+    <% } %>
+  </div>
+  <div class="rows">
+  <% library.forEach(a => { %>
+    <div class="row row-top">
+      <div class="row-main"><strong><%= a.title %></strong><span class="muted"><%= a.category %></span><p><%= a.excerpt %></p></div>
+      <div class="row-actions"><form method="post" action="/admin/articles/bibliotheque/<%= a.key %>"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">+ Ajouter à mon blog</button></form></div>
+    </div>
+  <% }) %>
+  </div>
+  <p class="hint">Ces textes donnent des conseils généraux et ne remplacent pas l'avis d'un vétérinaire. Relisez-les avec l'association avant publication.</p>
+</section>
+<% } else if (libraryTotal) { %>
+<p class="hint">✅ Tous les articles prêts à publier ont déjà été ajoutés à votre blog.</p>
+<% } %>
 <%- include('../partials/admin-footer') %>

@@ -11,9 +11,10 @@
     <div class="toolbar" role="toolbar" aria-label="Mise en forme">
       <button type="button" class="btn btn-sm btn-ghost" data-insert="title">𝗧 Ajouter un sous-titre</button>
       <button type="button" class="btn btn-sm btn-ghost" data-insert="list">• Ajouter une liste</button>
+      <button type="button" class="btn btn-sm btn-ghost" data-insert="bold"><b>G</b> Mettre en gras</button>
     </div>
     <textarea name="content" id="content" rows="14" required><%= post.content || '' %></textarea>
-    <span class="hint">Pour séparer deux paragraphes, laissez une ligne vide. Les boutons ci-dessus ajoutent un sous-titre ou une liste à l'endroit où se trouve votre curseur.</span>
+    <span class="hint">Pour séparer deux paragraphes, laissez une ligne vide. Les boutons ci-dessus ajoutent un sous-titre, une liste ou du gras à l'endroit où se trouve votre curseur. Pour du gras, entourez simplement les mots de deux étoiles : <code>**comme ça**</code>.</span>
   </label>
   <label>Résumé court (facultatif)<input name="excerpt" value="<%= post.excerpt || '' %>" maxlength="300"><span class="hint">Une phrase qui donne envie de lire. Si vous laissez vide, il est créé automatiquement.</span></label>
   <label class="check"><input type="checkbox" name="published" value="1" <%= post.published ? 'checked' : '' %>> <span><strong>Publier sur le blog</strong><br><small>Décochez pour le garder de côté, sans qu'il soit visible.</small></span></label>

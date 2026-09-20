@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const cookieSession = require('cookie-session');
 const multer = require('multer');
 const heicConvert = require('heic-convert');
+const articleLibrary = require('./articles-library');
 const { db, UPLOADS, DATA_DIR, getSettings, setSetting, hashPassword, verifyPassword, uniqueSlug } = require('./db');
 
 const app = express();
@@ -61,20 +62,39 @@ const clean = (v, max = 200) => String(v ?? '').trim().slice(0, max);
 // Texte simple -> HTML : paragraphes, "## Titre", "- liste"
 const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function formatContent(text) {
-  const blocks = String(text).replace(/\r/g, '').split(/\n{2,}/);
-  return blocks
-    .map((b) => {
-      const lines = b.split('\n').filter((l) => l.trim());
-      if (!lines.length) return '';
-      if (lines.every((l) => /^\s*[-•]\s+/.test(l)))
-        return '<ul>' + lines.map((l) => `<li>${esc(l.replace(/^\s*[-•]\s+/, ''))}</li>`).join('') + '</ul>';
-      if (/^##\s+/.test(lines[0])) {
-        const rest = lines.slice(1).map(esc).join('<br>');
-        return `<h2>${esc(lines[0].replace(/^##\s+/, ''))}</h2>` + (rest ? `<p>${rest}</p>` : '');
-      }
-      return '<p>' + lines.map(esc).join('<br>') + '</p>';
-    })
-    .join('\n');
+  // Traite le texte ligne par ligne : sous-titres (##), listes (-), paragraphes, gras (**mot**).
+  const inline = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const out = [];
+  let para = [];
+  let list = [];
+  const flushPara = () => {
+    if (para.length) out.push('<p>' + para.map(inline).join('<br>') + '</p>');
+    para = [];
+  };
+  const flushList = () => {
+    if (list.length) out.push('<ul>' + list.map((l) => `<li>${inline(l)}</li>`).join('') + '</ul>');
+    list = [];
+  };
+  for (const raw of String(text).replace(/\r/g, '').split('\n')) {
+    const line = raw.trim();
+    if (!line) {
+      flushPara();
+      flushList();
+    } else if (/^##\s+/.test(line)) {
+      flushPara();
+      flushList();
+      out.push(`<h2>${inline(line.replace(/^##\s+/, ''))}</h2>`);
+    } else if (/^[-•]\s+/.test(line)) {
+      flushPara();
+      list.push(line.replace(/^[-•]\s+/, ''));
+    } else {
+      flushList();
+      para.push(line);
+    }
+  }
+  flushPara();
+  flushList();
+  return out.join('\n');
 }
 
 // ---------- comptage des animaux ----------
@@ -557,7 +577,10 @@ app.post('/admin/animaux/:id/supprimer', (req, res) => {
 
 // ----- articles -----
 app.get('/admin/articles', (req, res) => {
-  res.render('admin/posts', { title: 'Les articles', posts: db.prepare('SELECT * FROM posts ORDER BY created_at DESC').all() });
+  const posts = db.prepare('SELECT * FROM posts ORDER BY created_at DESC').all();
+  const have = new Set(posts.map((p) => p.title));
+  const library = articleLibrary.filter((a) => !have.has(a.title));
+  res.render('admin/posts', { title: 'Les articles', posts, library, libraryTotal: articleLibrary.length });
 });
 app.get('/admin/articles/nouveau', (req, res) => {
   res.render('admin/post-form', { title: 'Nouvel article', post: { category: 'Bons réflexes', published: 1 } });
@@ -607,6 +630,30 @@ function savePost(req, res) {
 }
 app.post('/admin/articles', upload('cover'), checkCsrf, savePost);
 app.post('/admin/articles/:id', upload('cover'), checkCsrf, savePost);
+// Ajoute un article de la bibliothèque au blog, toujours en BROUILLON : il est relu avant publication
+function addFromLibrary(a) {
+  if (db.prepare('SELECT 1 FROM posts WHERE title = ?').get(a.title)) return false;
+  db.prepare('INSERT INTO posts (title, slug, category, excerpt, content, published) VALUES (?,?,?,?,?,0)').run(
+    a.title, uniqueSlug(a.title), a.category, a.excerpt, a.content
+  );
+  return true;
+}
+app.post('/admin/articles/bibliotheque/tout', (req, res) => {
+  const n = articleLibrary.filter(addFromLibrary).length;
+  flash(req, 'ok', n ? `${n} article${n > 1 ? 's ont été ajoutés' : ' a été ajouté'} en brouillon. Relisez-les, puis publiez ceux que vous voulez.` : 'Tous les articles sont déjà dans votre blog.');
+  res.redirect('/admin/articles');
+});
+app.post('/admin/articles/bibliotheque/:key', (req, res) => {
+  const a = articleLibrary.find((x) => x.key === req.params.key);
+  if (!a) flash(req, 'error', 'Cet article n’existe pas.');
+  else if (!addFromLibrary(a)) flash(req, 'error', 'Cet article est déjà dans votre blog.');
+  else {
+    const row = db.prepare('SELECT id FROM posts WHERE title = ?').get(a.title);
+    flash(req, 'ok', `« ${a.title} » a été ajouté en brouillon. Relisez-le, puis publiez-le.`, { href: `/admin/articles/${row.id}`, label: 'Ouvrir pour relire' });
+  }
+  res.redirect('/admin/articles');
+});
+
 app.post('/admin/articles/:id/supprimer', (req, res) => {
   const p = db.prepare('SELECT * FROM posts WHERE id = ?').get(Number(req.params.id));
   if (p) {
