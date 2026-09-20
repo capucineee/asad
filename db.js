@@ -5,7 +5,24 @@ const crypto = require('crypto');
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const UPLOADS = path.join(DATA_DIR, 'uploads');
-fs.mkdirSync(UPLOADS, { recursive: true });
+// Le dossier de données doit exister et être accessible en écriture, sinon rien ne peut être enregistré
+try {
+  fs.mkdirSync(UPLOADS, { recursive: true });
+  fs.accessSync(DATA_DIR, fs.constants.W_OK);
+} catch (e) {
+  console.error('\n──────────────────────────────────────────────');
+  console.error(' LE SITE NE PEUT PAS DÉMARRER');
+  console.error(` Impossible d'écrire dans le dossier : ${DATA_DIR}`);
+  console.error('');
+  console.error(' Sur Railway : un volume doit être rattaché au service,');
+  console.error(' avec un point de montage EXACTEMENT identique à la');
+  console.error(' variable DATA_DIR (par exemple /data pour les deux).');
+  console.error(' Sans volume, supprimez la variable DATA_DIR.');
+  console.error('');
+  console.error(` Détail technique : ${e.message}`);
+  console.error('──────────────────────────────────────────────\n');
+  process.exit(1);
+}
 
 const db = new DatabaseSync(path.join(DATA_DIR, 'asad.db'));
 db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
