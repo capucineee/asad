@@ -1041,5 +1041,33 @@ app.use((err, req, res, next) => {
   res.status(500).render('error', { title: 'Oups', message: 'Une erreur est survenue. Réessayez dans un instant.' });
 });
 
+// Rattrapage : génère la vignette des vidéos déjà envoyées avant que cette fonctionnalité
+// existe (elles ont une vidéo mais pas de vignette). Tourne une fois au démarrage, en tâche
+// de fond, sans retarder l'ouverture du site.
+async function backfillVideoPosters() {
+  const rows = [
+    ...db.prepare("SELECT id, video FROM animals WHERE video IS NOT NULL AND (video_poster IS NULL OR video_poster = '')").all().map((r) => ({ ...r, table: 'animals' })),
+    ...db.prepare("SELECT id, video FROM stories WHERE video IS NOT NULL AND (video_poster IS NULL OR video_poster = '')").all().map((r) => ({ ...r, table: 'stories' })),
+  ];
+  if (!rows.length) return;
+  console.log(`Vignettes vidéo manquantes : génération pour ${rows.length} élément(s)…`);
+  for (const row of rows) {
+    try {
+      const videoPath = path.join(UPLOADS, row.video);
+      if (!fs.existsSync(videoPath)) continue;
+      const info = await probeVideo({ path: videoPath });
+      if (!info) continue;
+      const poster = await makeVideoPoster(videoPath, info.duration);
+      if (poster) db.prepare(`UPDATE ${row.table} SET video_poster = ? WHERE id = ?`).run(poster, row.id);
+    } catch (e) {
+      console.error('Vignette (rattrapage) :', row.table, row.id, e.message);
+    }
+  }
+  console.log('Vignettes vidéo : génération terminée.');
+}
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`ASAD → http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`ASAD → http://localhost:${PORT}`);
+  backfillVideoPosters().catch((e) => console.error('Vignettes vidéo (rattrapage) :', e.message));
+});
