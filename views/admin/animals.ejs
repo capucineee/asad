@@ -20,6 +20,7 @@
       <span class="muted"><%= { disponible: 'Cherche une famille', reserve: 'Réservé', adopte: 'Adopté 🎉' }[a.status] %></span>
       <% if (a.is_pair && a.name2) { %><span class="badge badge-duo inline">💞 Inséparables</span><% } %>
       <% if (a.distress) { %><span class="badge badge-distress inline"><i></i>En détresse</span><% } %>
+      <% if (a.video) { %><span class="badge badge-soft inline">🎬 Vidéo</span><% } %>
     </div>
     <div class="row-actions">
       <% if (a.status !== 'adopte') { %>

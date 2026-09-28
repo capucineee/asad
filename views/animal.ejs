@@ -39,6 +39,11 @@
         <p class="alert-soft"><strong><%= duo ? 'Ces animaux sont en détresse' : 'Cet animal est en détresse' %></strong> et <%= duo ? 'ont' : 'a' %> besoin d'aide rapidement. Contactez-nous dès aujourd'hui.</p>
       <% } %>
       <div class="prose"><%- formatContent(animal.description) %></div>
+      <% if (animal.video) { %>
+        <div class="media-video">
+          <video controls playsinline preload="metadata" poster="<%= animal.photo ? '/uploads/' + animal.photo : '' %>" src="/uploads/<%= animal.video %>"></video>
+        </div>
+      <% } %>
       <% if (story) { %><div class="actions"><a class="btn" href="/histoires/<%= story.id %>">Lire son histoire 💛</a></div><% } %>
       <%- include('partials/share', { shareWhat: 'cette annonce', shareText: petName(animal) + (duo ? " cherchent" : " cherche") + " une famille — ASAD" }) %>
       <% if (animal.status !== 'adopte') { %>

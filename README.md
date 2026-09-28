@@ -24,3 +24,12 @@ Node 22.5+ requis (base SQLite intégrée, aucune autre installation).
 5. Ne pas dépasser **1 réplica** (base SQLite sur un seul disque).
 
 Le site démarre vide : aucun contenu de démonstration n'est déployé. Sauvegardez régulièrement le volume `/data`.
+
+## Vidéos
+
+Les photos et vidéos (animaux, histoires d'adoption) sont converties automatiquement au format le plus
+compatible (JPG, MP4 H.264/AAC), y compris depuis un iPhone. La conversion vidéo utilise un binaire
+`ffmpeg` téléchargé à l'installation (`ffmpeg-static`/`ffprobe-static`) : `npm install` doit pouvoir exécuter
+son script d'installation (pas de `--ignore-scripts`), aussi bien en local que sur l'hébergeur. Cela ajoute
+environ 150 Mo au dossier `node_modules`. Vidéos limitées à 3 minutes et 80 Mo ; la conversion peut prendre
+jusqu'à une à deux minutes sur un service peu puissant.

@@ -105,6 +105,10 @@ addAnimalCol('species2', "species2 TEXT NOT NULL DEFAULT 'chien'");
 addAnimalCol('sex2', "sex2 TEXT NOT NULL DEFAULT 'inconnu'");
 addAnimalCol('age2', "age2 TEXT NOT NULL DEFAULT ''");
 addAnimalCol('photo2', 'photo2 TEXT');
+addAnimalCol('video', 'video TEXT');
+
+const storyCols2 = db.prepare('PRAGMA table_info(stories)').all().map((c) => c.name);
+if (!storyCols2.includes('video')) db.exec('ALTER TABLE stories ADD COLUMN video TEXT');
 
 const DEFAULT_SETTINGS = {
   hero_title: 'Chaque chien et chaque chat mérite une famille',

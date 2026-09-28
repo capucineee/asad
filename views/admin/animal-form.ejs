@@ -7,6 +7,7 @@
 
   <div class="step"><b>1</b> La photo</div>
   <%- include('../partials/photo-field', { label: 'Photo de l’animal', name: 'photo', current: animal.photo, removeField: 'remove_photo' }) %>
+  <%- include('../partials/video-field', { label: 'Une petite vidéo (facultatif)', name: 'video', current: animal.video, removeField: 'remove_video' }) %>
 
   <div class="step"><b>2</b> Qui est-ce ?</div>
   <label>Son nom<input name="name" value="<%= animal.name || '' %>" maxlength="60" required placeholder="ex : Noisette"></label>

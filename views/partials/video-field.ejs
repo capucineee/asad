@@ -1,0 +1,14 @@
+<% const removeName = typeof removeField !== 'undefined' ? removeField : 'remove_video'; %>
+<div class="video-field" data-video-field>
+  <span class="field-title"><%= label %></span>
+  <div class="video-box">
+    <video class="video-preview" data-preview-video src="<%= current ? '/uploads/' + current : '' %>" <%- current ? 'controls' : 'hidden' %> playsinline></video>
+    <div class="video-empty" data-empty <%- current ? 'hidden' : '' %>><span>🎬</span><strong>Aucune vidéo</strong></div>
+  </div>
+  <label class="btn btn-ghost video-btn">
+    <span data-btn-text><%= current ? 'Changer la vidéo' : 'Choisir une vidéo' %></span>
+    <input type="file" name="<%= name %>" accept="video/mp4,video/quicktime,video/webm,video/x-m4v,.mp4,.mov,.webm" hidden data-file-video>
+  </label>
+  <% if (current) { %><label class="check video-remove"><input type="checkbox" name="<%= removeName %>" value="1"> Retirer la vidéo</label><% } %>
+  <span class="hint">Vidéos d'iPhone et d'Android acceptées, converties et compressées automatiquement. 3 minutes et 80 Mo maximum. L'enregistrement peut prendre un peu plus de temps le temps de la conversion : ne quittez pas la page.</span>
+</div>

@@ -7,7 +7,8 @@
   <div class="row <%= st.pending ? 'row-pending' : '' %>">
     <div class="row-thumb"><% if (st.photo) { %><img src="/uploads/<%= st.photo %>" alt=""><% } else { %><div class="ph"><%- include('../partials/paw') %></div><% } %></div>
     <div class="row-main"><strong><%= st.pet_name %> — <%= st.title %></strong><span class="muted"><%= st.adopter ? 'Adopté par ' + st.adopter + ' · ' : '' %><%= fdate(st.created_at) %></span>
-      <% if (st.pending) { %><span class="badge badge-distress inline">Envoyée par un adoptant · à valider</span><% } else if (!st.published) { %><span class="badge badge-soft inline">Brouillon</span><% } %></div>
+      <% if (st.pending) { %><span class="badge badge-distress inline">Envoyée par un adoptant · à valider</span><% } else if (!st.published) { %><span class="badge badge-soft inline">Brouillon</span><% } %>
+      <% if (st.video) { %><span class="badge badge-soft inline">🎬 Vidéo</span><% } %></div>
     <div class="row-actions">
       <% if (!st.published) { %><form method="post" action="/admin/histoires/<%= st.id %>/valider"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-sm">Publier</button></form><% } %>
       <% if (st.published) { %><a class="btn btn-sm btn-ghost" href="/histoires/<%= st.id %>" target="_blank">Voir</a><% } %>

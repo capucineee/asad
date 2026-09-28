@@ -4,6 +4,7 @@
 <form class="form-card wide" method="post" enctype="multipart/form-data" data-guard action="/admin/histoires<%= story.id ? '/' + story.id : '' %>">
   <input type="hidden" name="_csrf" value="<%= csrf %>">
   <%- include('../partials/photo-field', { label: 'Photo (idéalement de l’animal dans sa nouvelle famille)', name: 'photo', current: story.photo }) %>
+  <%- include('../partials/video-field', { label: 'Une petite vidéo (facultatif)', name: 'video', current: story.video }) %>
   <div class="two">
     <label>Nom de l'animal<input name="pet_name" value="<%= story.pet_name || '' %>" maxlength="60" required></label>
     <label>C'est un…<select name="species"><option value="chien" <%= story.species === 'chien' ? 'selected' : '' %>>Chien</option><option value="chat" <%= story.species === 'chat' ? 'selected' : '' %>>Chat</option></select></label>

@@ -5,6 +5,11 @@ const crypto = require('crypto');
 const cookieSession = require('cookie-session');
 const multer = require('multer');
 const heicConvert = require('heic-convert');
+const ffmpegPath = require('ffmpeg-static');
+const ffprobePath = require('ffprobe-static').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 const articleLibrary = require('./articles-library');
 const { db, UPLOADS, DATA_DIR, getSettings, setSetting, hashPassword, verifyPassword, uniqueSlug } = require('./db');
 
@@ -201,16 +206,27 @@ function limit(name, max, windowMs) {
 }
 setInterval(() => hits.clear(), 3600 * 1000).unref();
 
-// ---------- envoi de photos ----------
+// ---------- envoi de photos et de vidéos ----------
 const EXT = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/heic': '.heic', 'image/heif': '.heic' };
-// Les iPhone envoient des photos HEIC, parfois sans type MIME : on se fie aussi à l'extension
-const extOf = (file) => EXT[file.mimetype] || (/\.(heic|heif)$/i.test(file.originalname || '') ? '.heic' : null);
+const VIDEO_EXT = { 'video/mp4': '.mp4', 'video/quicktime': '.mov', 'video/webm': '.webm', 'video/x-m4v': '.m4v', 'video/3gpp': '.3gp' };
+const VIDEO_FIELDS = new Set(['video']);
+// Limite propre à chaque champ : les vidéos sont forcément plus lourdes que les photos
+const FIELD_LIMITS = { photo: 12 * 1024 * 1024, photo2: 12 * 1024 * 1024, cover: 12 * 1024 * 1024, video: 80 * 1024 * 1024 };
+const MAX_VIDEO_SECONDS = 180; // 3 minutes : au-delà, la vidéo est refusée avant toute conversion
+// Les iPhone envoient des photos HEIC (et des vidéos .mov), parfois sans type MIME correct : on se fie aussi à l'extension
+const extOf = (file) => {
+  if (VIDEO_FIELDS.has(file.fieldname)) {
+    const byExt = file.originalname && file.originalname.match(/\.(mp4|mov|webm|m4v|3gp)$/i);
+    return VIDEO_EXT[file.mimetype] || (byExt ? byExt[0].toLowerCase() : null);
+  }
+  return EXT[file.mimetype] || (/\.(heic|heif)$/i.test(file.originalname || '') ? '.heic' : null);
+};
 const uploader = multer({
   storage: multer.diskStorage({
     destination: UPLOADS,
     filename: (req, file, cb) => cb(null, crypto.randomBytes(12).toString('hex') + extOf(file)),
   }),
-  limits: { fileSize: 12 * 1024 * 1024, files: 2 },
+  limits: { fileSize: 85 * 1024 * 1024, files: 3 },
   fileFilter: (req, file, cb) => cb(null, !!extOf(file)),
 });
 const isHeic = (file) => {
@@ -236,11 +252,75 @@ async function convertHeic(file) {
     return false;
   }
 }
+function probeVideo(file) {
+  return new Promise((resolve) => {
+    ffmpeg.ffprobe(file.path, (err, data) => {
+      if (err || !data?.format?.duration) return resolve(null);
+      const vStream = (data.streams || []).find((s) => s.codec_type === 'video');
+      resolve({ duration: data.format.duration, width: vStream?.width || 0 });
+    });
+  });
+}
+// Convertit n'importe quelle vidéo envoyée (mov d'iPhone, mp4, webm…) en MP4 lisible sur
+// tous les navigateurs, et réduit sa taille. Renvoie 'ok', 'invalid', 'too-long' ou 'error'.
+async function convertVideo(file) {
+  if (!file) return 'ok';
+  const info = await probeVideo(file);
+  if (!info) {
+    fs.unlink(file.path, () => {});
+    return 'invalid';
+  }
+  if (info.duration > MAX_VIDEO_SECONDS) {
+    fs.unlink(file.path, () => {});
+    return 'too-long';
+  }
+  const outName = crypto.randomBytes(12).toString('hex') + '.mp4';
+  const outPath = path.join(UPLOADS, outName);
+  const filters = info.width > 960 ? ['scale=960:-2'] : [];
+  try {
+    await new Promise((resolve, reject) => {
+      let settled = false;
+      const done = (fn) => (...a) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(killTimer);
+        fn(...a);
+      };
+      const cmd = ffmpeg(file.path)
+        .videoCodec('libx264')
+        .audioCodec('aac')
+        .audioBitrate('128k')
+        .outputOptions(['-crf 26', '-preset veryfast', '-pix_fmt yuv420p', '-movflags +faststart'])
+        .format('mp4');
+      if (filters.length) cmd.videoFilters(filters);
+      const killTimer = setTimeout(() => {
+        cmd.kill('SIGKILL');
+        done(reject)(new Error('conversion trop longue'));
+      }, 4 * 60 * 1000);
+      cmd.on('error', done(reject)).on('end', done(resolve)).save(outPath);
+    });
+  } catch (e) {
+    console.error('Vidéo:', e.message);
+    fs.unlink(file.path, () => {});
+    fs.unlink(outPath, () => {});
+    return 'error';
+  }
+  fs.unlink(file.path, () => {});
+  Object.assign(file, { filename: outName, path: outPath, mimetype: 'video/mp4' });
+  return 'ok';
+}
+const oversized = (file) => file && FIELD_LIMITS[file.fieldname] && file.size > FIELD_LIMITS[file.fieldname];
+const dropFiles = (...files) => files.forEach((f) => f && fs.unlink(f.path, () => {}));
 const upload = (field) => (req, res, next) =>
   uploader.single(field)(req, res, async (err) => {
     const back = req.get('referer') || (req.originalUrl.startsWith('/admin') ? '/admin' : '/histoires');
     if (err) {
       flash(req, 'error', err.code === 'LIMIT_FILE_SIZE' ? 'La photo est trop lourde (12 Mo maximum).' : "La photo n'a pas pu être envoyée.");
+      return res.redirect(back);
+    }
+    if (oversized(req.file)) {
+      dropFiles(req.file);
+      flash(req, 'error', 'La photo est trop lourde (12 Mo maximum).');
       return res.redirect(back);
     }
     if (!(await convertHeic(req.file))) {
@@ -249,17 +329,35 @@ const upload = (field) => (req, res, next) =>
     }
     next();
   });
-// Variante pour un formulaire qui porte plusieurs photos (annonce en duo)
+// Variante pour un formulaire qui porte plusieurs fichiers (photos et/ou vidéo)
 const uploadMany = (names) => (req, res, next) =>
   uploader.fields(names.map((name) => ({ name, maxCount: 1 })))(req, res, async (err) => {
     const back = req.get('referer') || '/admin/animaux';
     if (err) {
-      flash(req, 'error', err.code === 'LIMIT_FILE_SIZE' ? 'Une photo est trop lourde (12 Mo maximum).' : "La photo n'a pas pu être envoyée.");
+      flash(req, 'error', err.code === 'LIMIT_FILE_SIZE' ? 'Un fichier est trop lourd (80 Mo maximum pour une vidéo, 12 Mo pour une photo).' : "L'envoi a échoué.");
+      return res.redirect(back);
+    }
+    const all = names.map((n) => req.files?.[n]?.[0]).filter(Boolean);
+    const tooBig = all.find(oversized);
+    if (tooBig) {
+      dropFiles(...all);
+      flash(req, 'error', VIDEO_FIELDS.has(tooBig.fieldname) ? 'La vidéo est trop lourde (80 Mo maximum).' : 'Une photo est trop lourde (12 Mo maximum).');
       return res.redirect(back);
     }
     for (const n of names) {
       const file = req.files?.[n]?.[0];
-      if (file && !(await convertHeic(file))) {
+      if (!file) continue;
+      if (VIDEO_FIELDS.has(n)) {
+        const result = await convertVideo(file);
+        if (result !== 'ok') {
+          const msg =
+            result === 'too-long'
+              ? `Cette vidéo dépasse ${Math.round(MAX_VIDEO_SECONDS / 60)} minutes. Raccourcissez-la avant de l’envoyer.`
+              : 'Cette vidéo n’a pas pu être lue. Essayez un autre fichier ou un autre format (MP4 de préférence).';
+          flash(req, 'error', msg);
+          return res.redirect(back);
+        }
+      } else if (!(await convertHeic(file))) {
         flash(req, 'error', 'Cette photo n’a pas pu être lue. Essayez de la reprendre ou d’en choisir une autre.');
         return res.redirect(back);
       }
@@ -267,7 +365,7 @@ const uploadMany = (names) => (req, res, next) =>
     next();
   });
 function removeFile(name) {
-  if (name && /^[a-f0-9]+\.(jpg|png|webp)$/.test(name)) fs.unlink(path.join(UPLOADS, name), () => {});
+  if (name && /^[a-f0-9]+\.(jpg|png|webp|mp4)$/.test(name)) fs.unlink(path.join(UPLOADS, name), () => {});
 }
 // Vérifie qu'un fichier envoyé est bien une image (signature), sinon le supprime
 function validImage(file) {
@@ -478,9 +576,11 @@ function saveAnimal(req, res) {
   const b = req.body;
   const f1 = req.files?.photo?.[0];
   const f2 = req.files?.photo2?.[0];
+  const f3 = req.files?.video?.[0];
   const drop = () => {
     if (f1) removeFile(f1.filename);
     if (f2) removeFile(f2.filename);
+    if (f3) removeFile(f3.filename);
   };
   const back = req.get('referer') || '/admin/animaux';
   const fail = (msg) => {
@@ -529,24 +629,25 @@ function saveAnimal(req, res) {
     removeFile(photo2);
     photo2 = null;
   }
+  const video = pick(f3, old ? old.video : null, b.remove_video);
 
   if (old) {
     db.prepare(
-      'UPDATE animals SET name=?, species=?, sex=?, age=?, description=?, distress=?, status=?, photo=?, is_pair=?, name2=?, species2=?, sex2=?, age2=?, photo2=? WHERE id=?'
+      'UPDATE animals SET name=?, species=?, sex=?, age=?, description=?, distress=?, status=?, photo=?, is_pair=?, name2=?, species2=?, sex2=?, age2=?, photo2=?, video=? WHERE id=?'
     ).run(data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo,
-      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, id);
+      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, video, id);
   } else {
     db.prepare(
-      'INSERT INTO animals (name, species, sex, age, description, distress, status, photo, is_pair, name2, species2, sex2, age2, photo2) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+      'INSERT INTO animals (name, species, sex, age, description, distress, status, photo, is_pair, name2, species2, sex2, age2, photo2, video) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     ).run(data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo,
-      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2);
+      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, video);
   }
   const shown = petName({ ...data, name2: data.name2 });
   flash(req, 'ok', old ? `${shown} a bien été mis à jour.` : `${shown} a été ajouté au site.`);
   res.redirect('/admin/animaux');
 }
-app.post('/admin/animaux', uploadMany(['photo', 'photo2']), checkCsrf, saveAnimal);
-app.post('/admin/animaux/:id', uploadMany(['photo', 'photo2']), checkCsrf, saveAnimal);
+app.post('/admin/animaux', uploadMany(['photo', 'photo2', 'video']), checkCsrf, saveAnimal);
+app.post('/admin/animaux/:id', uploadMany(['photo', 'photo2', 'video']), checkCsrf, saveAnimal);
 
 app.post('/admin/animaux/:id/detresse', (req, res) => {
   const a = db.prepare('SELECT * FROM animals WHERE id = ?').get(Number(req.params.id));
@@ -569,6 +670,7 @@ app.post('/admin/animaux/:id/supprimer', (req, res) => {
   if (a) {
     removeFile(a.photo);
     removeFile(a.photo2);
+    removeFile(a.video);
     db.prepare('DELETE FROM animals WHERE id = ?').run(a.id);
     flash(req, 'ok', `${petName(a)} a été supprimé.`);
   }
@@ -697,7 +799,11 @@ app.get('/admin/histoires/:id', (req, res, next) => {
 function saveStory(req, res) {
   const id = Number(req.params.id || 0);
   const old = id ? db.prepare('SELECT * FROM stories WHERE id = ?').get(id) : null;
-  if (!validImage(req.file)) {
+  const sf1 = req.files?.photo?.[0];
+  const sf2 = req.files?.video?.[0];
+  if (!validImage(sf1)) {
+    if (sf1) removeFile(sf1.filename);
+    if (sf2) removeFile(sf2.filename);
     flash(req, 'error', 'Ce fichier n’est pas une photo valide (JPG, PNG ou WebP).');
     return res.redirect(req.get('referer') || '/admin/histoires');
   }
@@ -706,7 +812,8 @@ function saveStory(req, res) {
   const title = clean(b.title, 120);
   const content = clean(b.content, 10000);
   if (!pet || !title || !content) {
-    if (req.file) removeFile(req.file.filename);
+    if (sf1) removeFile(sf1.filename);
+    if (sf2) removeFile(sf2.filename);
     flash(req, 'error', 'Le nom de l’animal, le titre et l’histoire sont obligatoires.');
     return res.redirect(req.get('referer') || '/admin/histoires');
   }
@@ -715,20 +822,28 @@ function saveStory(req, res) {
   const published = b.published ? 1 : 0;
   const animalId = db.prepare('SELECT id FROM animals WHERE id = ?').get(Number(b.animal_id))?.id ?? null;
   let photo = old ? old.photo : null;
-  if (req.file) {
+  if (sf1) {
     removeFile(photo);
-    photo = req.file.filename;
+    photo = sf1.filename;
   } else if (old && b.remove_photo) {
     removeFile(photo);
     photo = null;
   }
+  let video = old ? old.video : null;
+  if (sf2) {
+    removeFile(video);
+    video = sf2.filename;
+  } else if (old && b.remove_video) {
+    removeFile(video);
+    video = null;
+  }
   if (old) {
-    db.prepare('UPDATE stories SET pet_name=?, species=?, adopter=?, title=?, content=?, photo=?, published=?, animal_id=?, pending=? WHERE id=?').run(
-      pet, species, adopter, title, content, photo, published, animalId, published ? 0 : old.pending, id
+    db.prepare('UPDATE stories SET pet_name=?, species=?, adopter=?, title=?, content=?, photo=?, published=?, animal_id=?, pending=?, video=? WHERE id=?').run(
+      pet, species, adopter, title, content, photo, published, animalId, published ? 0 : old.pending, video, id
     );
   } else {
-    db.prepare('INSERT INTO stories (pet_name, species, adopter, title, content, photo, published, animal_id) VALUES (?,?,?,?,?,?,?,?)').run(
-      pet, species, adopter, title, content, photo, published, animalId
+    db.prepare('INSERT INTO stories (pet_name, species, adopter, title, content, photo, published, animal_id, video) VALUES (?,?,?,?,?,?,?,?,?)').run(
+      pet, species, adopter, title, content, photo, published, animalId, video
     );
   }
   // Une histoire d'adoption publiée signifie que l'animal a trouvé sa famille :
@@ -747,8 +862,8 @@ function saveStory(req, res) {
       : 'L’histoire est enregistrée en brouillon (non visible).');
   res.redirect('/admin/histoires');
 }
-app.post('/admin/histoires', upload('photo'), checkCsrf, saveStory);
-app.post('/admin/histoires/:id', upload('photo'), checkCsrf, saveStory);
+app.post('/admin/histoires', uploadMany(['photo', 'video']), checkCsrf, saveStory);
+app.post('/admin/histoires/:id', uploadMany(['photo', 'video']), checkCsrf, saveStory);
 app.post('/admin/histoires/:id/valider', (req, res) => {
   const id = Number(req.params.id);
   const st = db.prepare('SELECT * FROM stories WHERE id = ?').get(id);
@@ -768,6 +883,7 @@ app.post('/admin/histoires/:id/supprimer', (req, res) => {
   const st = db.prepare('SELECT * FROM stories WHERE id = ?').get(Number(req.params.id));
   if (st) {
     removeFile(st.photo);
+    removeFile(st.video);
     db.prepare('DELETE FROM stories WHERE id = ?').run(st.id);
     flash(req, 'ok', 'L’histoire a été supprimée.');
   }

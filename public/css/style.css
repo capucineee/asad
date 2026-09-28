@@ -311,6 +311,16 @@ body.admin { font-size: 18px; }
 .photo-empty span { display: block; font-size: 3rem; }
 .photo-btn { margin: 0 0 10px; cursor: pointer; }
 .photo-remove { font-size: .9rem; margin-bottom: 8px; }
+.video-field { margin-bottom: 22px; }
+.video-box { width: 100%; max-width: 420px; aspect-ratio: 16 / 9; border-radius: 24px; overflow: hidden; background: var(--red-soft); border: 3px dashed var(--red-line); display: grid; place-items: center; margin-bottom: 12px; }
+.video-preview { width: 100%; height: 100%; object-fit: contain; background: #000; }
+.video-empty { text-align: center; color: var(--muted); }
+.video-empty span { display: block; font-size: 3rem; }
+.video-btn { margin: 0 0 10px; cursor: pointer; }
+.video-remove { font-size: .9rem; margin-bottom: 8px; }
+.media-video { margin-top: 28px; }
+.media-video video { width: 100%; border-radius: var(--radius); box-shadow: var(--shadow-soft); background: #000; display: block; }
+.badge-video { top: 12px; left: auto; right: 12px; background: rgba(17, 20, 30, .72); color: #fff; }
 .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
 .sticky-actions { position: sticky; bottom: 0; background: linear-gradient(transparent, #fff 30%); padding: 22px 0 6px; margin-top: 10px; }
 .btn[disabled] { opacity: .7; cursor: wait; }

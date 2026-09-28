@@ -2,6 +2,7 @@
   <div class="thumb thumb-wide">
     <% if (story.photo) { %><img src="/uploads/<%= story.photo %>" alt="<%= story.pet_name %>" loading="lazy"><% } else { %><div class="ph"><%- include('paw') %></div><% } %>
     <span class="badge badge-adopted">Adopté 🎉</span>
+    <% if (story.video) { %><span class="badge badge-video">🎬 Vidéo</span><% } %>
   </div>
   <div class="card-body">
     <span class="tag"><%= story.pet_name %><%= story.adopter ? ' · chez ' + story.adopter : '' %></span>

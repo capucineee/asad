@@ -40,6 +40,36 @@ document.querySelectorAll('[data-photo-field]').forEach((box) => {
   });
 });
 
+// Aperçu immédiat de la vidéo choisie
+document.querySelectorAll('[data-video-field]').forEach((box) => {
+  const input = box.querySelector('[data-file-video]');
+  const video = box.querySelector('[data-preview-video]');
+  const empty = box.querySelector('[data-empty]');
+  const btn = box.querySelector('[data-btn-text]');
+  input.addEventListener('change', () => {
+    const f = input.files[0];
+    if (!f) return;
+    if (f.size > 80 * 1024 * 1024) {
+      alert('Cette vidéo est trop lourde (80 Mo maximum). Choisissez-en une plus légère, ou raccourcissez-la.');
+      input.value = '';
+      return;
+    }
+    // Certains formats (comme .mov sur certains navigateurs) ne s'aperçoivent pas avant l'envoi : ce n'est pas un problème, elle sera convertie
+    video.onerror = () => {
+      video.hidden = true;
+      if (empty) {
+        empty.hidden = false;
+        empty.querySelector('strong').textContent = 'Vidéo choisie : ' + f.name;
+      }
+    };
+    video.src = URL.createObjectURL(f);
+    video.hidden = false;
+    video.controls = true;
+    if (empty) empty.hidden = true;
+    btn.textContent = 'Changer la vidéo';
+  });
+});
+
 // Boutons de mise en forme des articles
 const insertions = { title: '\n\n## Mon sous-titre\n', list: '\n\n- Premier point\n- Deuxième point\n- Troisième point\n', bold: '**mots en gras**' };
 document.querySelectorAll('[data-insert]').forEach((b) =>

@@ -9,6 +9,7 @@
     <% } else if (animal.distress) { %><span class="badge badge-distress"><i></i>En détresse</span>
     <% } else if (animal.status === 'reserve') { %><span class="badge badge-soft">Réservé</span><% } %>
     <% if (duo) { %><span class="badge badge-duo">💞 Inséparables</span><% } %>
+    <% if (animal.video) { %><span class="badge badge-video">🎬 Vidéo</span><% } %>
   </div>
   <div class="card-body">
     <h3><%= petName(animal) %></h3>
