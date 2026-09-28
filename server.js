@@ -261,6 +261,23 @@ function probeVideo(file) {
     });
   });
 }
+// Extrait une image de la vidéo (pour l'utiliser à la place de la photo manquante) :
+// sans elle, chaque navigateur choisit une image différente avant que la vidéo soit lancée.
+async function makeVideoPoster(videoPath, duration) {
+  const t = Math.min(1, Math.max(0.1, duration / 2)).toFixed(2);
+  const name = crypto.randomBytes(12).toString('hex') + '.jpg';
+  const outPath = path.join(UPLOADS, name);
+  try {
+    await new Promise((resolve, reject) => {
+      ffmpeg(videoPath).seekInput(t).frames(1).outputOptions(['-q:v 4']).save(outPath).on('end', resolve).on('error', reject);
+    });
+    return name;
+  } catch (e) {
+    console.error('Vignette vidéo:', e.message);
+    fs.unlink(outPath, () => {});
+    return null;
+  }
+}
 // Convertit n'importe quelle vidéo envoyée (mov d'iPhone, mp4, webm…) en MP4 lisible sur
 // tous les navigateurs, et réduit sa taille. Renvoie 'ok', 'invalid', 'too-long' ou 'error'.
 async function convertVideo(file) {
@@ -306,7 +323,8 @@ async function convertVideo(file) {
     return 'error';
   }
   fs.unlink(file.path, () => {});
-  Object.assign(file, { filename: outName, path: outPath, mimetype: 'video/mp4' });
+  const posterFilename = await makeVideoPoster(outPath, info.duration);
+  Object.assign(file, { filename: outName, path: outPath, mimetype: 'video/mp4', posterFilename });
   return 'ok';
 }
 const oversized = (file) => file && FIELD_LIMITS[file.fieldname] && file.size > FIELD_LIMITS[file.fieldname];
@@ -630,17 +648,26 @@ function saveAnimal(req, res) {
     photo2 = null;
   }
   const video = pick(f3, old ? old.video : null, b.remove_video);
+  // La vignette suit la vidéo : nouvelle vidéo -> nouvelle vignette, vidéo retirée -> vignette retirée
+  let videoPoster = old ? old.video_poster : null;
+  if (f3) {
+    removeFile(videoPoster);
+    videoPoster = f3.posterFilename || null;
+  } else if (old && b.remove_video) {
+    removeFile(videoPoster);
+    videoPoster = null;
+  }
 
   if (old) {
     db.prepare(
-      'UPDATE animals SET name=?, species=?, sex=?, age=?, description=?, distress=?, status=?, photo=?, is_pair=?, name2=?, species2=?, sex2=?, age2=?, photo2=?, video=? WHERE id=?'
+      'UPDATE animals SET name=?, species=?, sex=?, age=?, description=?, distress=?, status=?, photo=?, is_pair=?, name2=?, species2=?, sex2=?, age2=?, photo2=?, video=?, video_poster=? WHERE id=?'
     ).run(data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo,
-      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, video, id);
+      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, video, videoPoster, id);
   } else {
     db.prepare(
-      'INSERT INTO animals (name, species, sex, age, description, distress, status, photo, is_pair, name2, species2, sex2, age2, photo2, video) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+      'INSERT INTO animals (name, species, sex, age, description, distress, status, photo, is_pair, name2, species2, sex2, age2, photo2, video, video_poster) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
     ).run(data.name, data.species, data.sex, data.age, data.description, data.distress, data.status, photo,
-      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, video);
+      data.is_pair, data.name2, data.species2, data.sex2, data.age2, photo2, video, videoPoster);
   }
   const shown = petName({ ...data, name2: data.name2 });
   flash(req, 'ok', old ? `${shown} a bien été mis à jour.` : `${shown} a été ajouté au site.`);
@@ -671,6 +698,7 @@ app.post('/admin/animaux/:id/supprimer', (req, res) => {
     removeFile(a.photo);
     removeFile(a.photo2);
     removeFile(a.video);
+    removeFile(a.video_poster);
     db.prepare('DELETE FROM animals WHERE id = ?').run(a.id);
     flash(req, 'ok', `${petName(a)} a été supprimé.`);
   }
@@ -830,20 +858,25 @@ function saveStory(req, res) {
     photo = null;
   }
   let video = old ? old.video : null;
+  let videoPoster = old ? old.video_poster : null;
   if (sf2) {
     removeFile(video);
+    removeFile(videoPoster);
     video = sf2.filename;
+    videoPoster = sf2.posterFilename || null;
   } else if (old && b.remove_video) {
     removeFile(video);
+    removeFile(videoPoster);
     video = null;
+    videoPoster = null;
   }
   if (old) {
-    db.prepare('UPDATE stories SET pet_name=?, species=?, adopter=?, title=?, content=?, photo=?, published=?, animal_id=?, pending=?, video=? WHERE id=?').run(
-      pet, species, adopter, title, content, photo, published, animalId, published ? 0 : old.pending, video, id
+    db.prepare('UPDATE stories SET pet_name=?, species=?, adopter=?, title=?, content=?, photo=?, published=?, animal_id=?, pending=?, video=?, video_poster=? WHERE id=?').run(
+      pet, species, adopter, title, content, photo, published, animalId, published ? 0 : old.pending, video, videoPoster, id
     );
   } else {
-    db.prepare('INSERT INTO stories (pet_name, species, adopter, title, content, photo, published, animal_id, video) VALUES (?,?,?,?,?,?,?,?,?)').run(
-      pet, species, adopter, title, content, photo, published, animalId, video
+    db.prepare('INSERT INTO stories (pet_name, species, adopter, title, content, photo, published, animal_id, video, video_poster) VALUES (?,?,?,?,?,?,?,?,?,?)').run(
+      pet, species, adopter, title, content, photo, published, animalId, video, videoPoster
     );
   }
   // Une histoire d'adoption publiée signifie que l'animal a trouvé sa famille :
@@ -884,6 +917,7 @@ app.post('/admin/histoires/:id/supprimer', (req, res) => {
   if (st) {
     removeFile(st.photo);
     removeFile(st.video);
+    removeFile(st.video_poster);
     db.prepare('DELETE FROM stories WHERE id = ?').run(st.id);
     flash(req, 'ok', 'L’histoire a été supprimée.');
   }

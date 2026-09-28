@@ -1,6 +1,8 @@
 <a class="card post story" href="/histoires/<%= story.id %>">
   <div class="thumb thumb-wide">
-    <% if (story.photo) { %><img src="/uploads/<%= story.photo %>" alt="<%= story.pet_name %>" loading="lazy"><% } else { %><div class="ph"><%- include('paw') %></div><% } %>
+    <% if (story.photo) { %><img src="/uploads/<%= story.photo %>" alt="<%= story.pet_name %>" loading="lazy">
+    <% } else if (story.video_poster) { %><img src="/uploads/<%= story.video_poster %>" alt="<%= story.pet_name %>" loading="lazy"><span class="play-badge">▶</span>
+    <% } else { %><div class="ph"><%- include('paw') %></div><% } %>
     <span class="badge badge-adopted">Adopté 🎉</span>
     <% if (story.video) { %><span class="badge badge-video">🎬 Vidéo</span><% } %>
   </div>

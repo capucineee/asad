@@ -4,6 +4,8 @@
     <% if (animal.photo || animal.photo2) { %>
       <% if (animal.photo) { %><img src="/uploads/<%= animal.photo %>" alt="<%= animal.name %>" loading="lazy"><% } %>
       <% if (duo && animal.photo2) { %><img src="/uploads/<%= animal.photo2 %>" alt="<%= animal.name2 %>" loading="lazy"><% } %>
+    <% } else if (animal.video_poster) { %>
+      <img src="/uploads/<%= animal.video_poster %>" alt="<%= animal.name %>" loading="lazy"><span class="play-badge">▶</span>
     <% } else { %><div class="ph"><%- include('paw') %></div><% } %>
     <% if (animal.status === 'adopte') { %><span class="badge badge-adopted">Adopté 🎉</span>
     <% } else if (animal.distress) { %><span class="badge badge-distress"><i></i>En détresse</span>
